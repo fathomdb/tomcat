@@ -412,6 +412,14 @@ public class PooledConnection {
             return false;
         }
 
+        try {
+            if (connection.isClosed()) {
+                return false;
+            }
+        } catch (Exception ex) {
+            log.warn("Error checking whether connection closed", ex);
+        }
+
         if (!doValidate(validateAction)) {
             //no validation required, no init sql and props not set
             return true;
