@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
 
@@ -28,6 +29,11 @@ public class TestInterceptor extends JdbcInterceptor {
     public static boolean poolstarted = false;
     public static boolean poolclosed = false;
     public static AtomicInteger instancecount = new AtomicInteger(0);
+
+    public TestInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
+    	super(next, properties);
+    	instancecount.incrementAndGet();
+    }
 
     @Override
     public void poolClosed(ConnectionPool pool) {
@@ -49,11 +55,5 @@ public class TestInterceptor extends JdbcInterceptor {
     @Override
     public void cleanup() {
         // NO-OP
-    }
-
-    @Override
-    public void setProperties(Map<String, InterceptorProperty> properties) {
-        instancecount.incrementAndGet();
-        super.setProperties(properties);
     }
 }

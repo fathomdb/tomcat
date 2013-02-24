@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
 
@@ -37,13 +39,36 @@ public class StatementCache extends StatementDecoratorInterceptor {
     protected static final String[] PREPARED_TYPE = new String[] {PREPARE_STATEMENT};
     protected static final String[] NO_TYPE = new String[] {};
 
+    private final boolean cachePrepared;
+    private final boolean cacheCallable;
+    private final int maxCacheSize;
+
+    private final String[] types;
+    private final LruCache statements;
+
+    
+    public StatementCache(JdbcInterceptor next, InterceptorProperties properties) {
+        super(next, properties);
+        
+        cachePrepared = properties.getValueAsBoolean("prepared", true);
+        cacheCallable = properties.getValueAsBoolean("callable", false);
+        maxCacheSize = properties.getValueAsInt("max", 50);
+        
+        if (cachePrepared && cacheCallable) {
+            this.types = ALL_TYPES;
+        } else if (cachePrepared) {
+            this.types = PREPARED_TYPE;
+        } else if (cacheCallable) {
+            this.types = CALLABLE_TYPE;
+        } else {
+            this.types = NO_TYPE;
+        }
+        
+        this.statements = new LruCache(maxCacheSize);
+
+    }
+    
     /*begin properties for the statement cache*/
-    private boolean cachePrepared = true;
-    private boolean cacheCallable = false;
-    private PooledConnection pcon;
-    private String[] types;
-    private LruCache statements;
-    private int maxCacheSize = 50;
 
     static class LruCache extends LinkedHashMap<String, CachedStatement> {
         private static final long serialVersionUID = 1L;
@@ -84,47 +109,13 @@ public class StatementCache extends StatementDecoratorInterceptor {
         return statements.size();
     }
 
-    @Override
-    public void setProperties(Map<String, InterceptorProperty> properties) {
-        super.setProperties(properties);
-        InterceptorProperty p = properties.get("prepared");
-        if (p!=null) cachePrepared = p.getValueAsBoolean(cachePrepared);
-        p = properties.get("callable");
-        if (p!=null) cacheCallable = p.getValueAsBoolean(cacheCallable);
-        p = properties.get("max");
-        if (p!=null) maxCacheSize = p.getValueAsInt(maxCacheSize);
-        if (cachePrepared && cacheCallable) {
-            this.types = ALL_TYPES;
-        } else if (cachePrepared) {
-            this.types = PREPARED_TYPE;
-        } else if (cacheCallable) {
-            this.types = CALLABLE_TYPE;
-        } else {
-            this.types = NO_TYPE;
-        }
-
-    }
+    
     /*end properties for the statement cache*/
 
     /*begin the actual statement cache*/
-    @Override
-    public void initialize(ConnectionPool parent, PooledConnection con) {
-        super.initialize(parent, con);
-        this.pcon = con;
-        this.statements = new LruCache(maxCacheSize);
-    }
-
-    @Override
-    public void cleanup() {
-        super.cleanup();
-        this.pcon = null;
-        this.statements = null;
-    }
 
     @Override
     public void disconnected(ConnectionPool parent, PooledConnection con, boolean finalizing) {
-        assert con == pcon;
-
         if (statements!=null) {
             for (Map.Entry<String, CachedStatement> p : statements.entrySet()) {
                 closeStatement(p.getValue());

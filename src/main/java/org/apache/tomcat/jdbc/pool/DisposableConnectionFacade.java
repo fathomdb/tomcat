@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
+
 /**
  * A DisposableConnectionFacade object is the top most interceptor that wraps an
  * object of type {@link PooledConnection}. The ProxyCutOffConnection intercepts
@@ -36,9 +38,10 @@ import java.sql.SQLException;
  * <code>true</code> argument.
  */
 public class DisposableConnectionFacade extends JdbcInterceptor {
-    protected DisposableConnectionFacade(JdbcInterceptor interceptor) {
-        setUseEquals(interceptor.isUseEquals());
-        setNext(interceptor);
+	private volatile boolean closed = false;
+	
+    protected DisposableConnectionFacade(JdbcInterceptor next, InterceptorProperties properties) {
+        super(next, properties);
     }
 
     @Override
@@ -68,7 +71,7 @@ public class DisposableConnectionFacade extends JdbcInterceptor {
                     this.equals(Proxy.getInvocationHandler(args[0])));
         } else if (compare(HASHCODE_VAL, method)) {
             return Integer.valueOf(this.hashCode());
-        } else if (getNext()==null) {
+        } else if (closed) {
             if (compare(ISCLOSED_VAL, method)) {
                 return Boolean.TRUE;
             }
@@ -80,21 +83,19 @@ public class DisposableConnectionFacade extends JdbcInterceptor {
             }
         }
 
+        if (closed) {
+            if (compare(TOSTRING_VAL, method)) {
+                return "DisposableConnectionFacade[null]";
+            }
+            throw new SQLException(
+                    "PooledConnection has already been closed.");
+        }
+        
         try {
             return super.invoke(proxy, method, args);
-        } catch (NullPointerException e) {
-            if (getNext() == null) {
-                if (compare(TOSTRING_VAL, method)) {
-                    return "DisposableConnectionFacade[null]";
-                }
-                throw new SQLException(
-                        "PooledConnection has already been closed.");
-            }
-
-            throw e;
         } finally {
             if (compare(CLOSE_VAL, method)) {
-                setNext(null);
+            	closed = true;
             }
         }
     }

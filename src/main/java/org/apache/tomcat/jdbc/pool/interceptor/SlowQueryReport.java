@@ -32,6 +32,8 @@ import javax.management.openmbean.SimpleType;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
 
@@ -70,8 +72,19 @@ public class SlowQueryReport extends AbstractQueryReport  {
     /**
      * Creates a slow query report interceptor
      */
-    public SlowQueryReport() {
-        super();
+    public SlowQueryReport(JdbcInterceptor next, InterceptorProperties properties) {
+        super(next, properties);
+        
+        final String threshold = "threshold";
+        final String maxqueries= "maxQueries";
+        InterceptorProperty p1 = properties.get(threshold);
+        InterceptorProperty p2 = properties.get(maxqueries);
+        if (p1!=null) {
+            setThreshold(Long.parseLong(p1.getValue()));
+        }
+        if (p2!=null) {
+            setMaxQueries(Integer.parseInt(p2.getValue()));
+        }
     }
 
     public void setMaxQueries(int maxQueries) {
@@ -200,21 +213,6 @@ public class SlowQueryReport extends AbstractQueryReport  {
     public void cleanup() {
         super.cleanup();
         queries = null;
-    }
-
-    @Override
-    public void setProperties(Map<String, InterceptorProperty> properties) {
-        super.setProperties(properties);
-        final String threshold = "threshold";
-        final String maxqueries= "maxQueries";
-        InterceptorProperty p1 = properties.get(threshold);
-        InterceptorProperty p2 = properties.get(maxqueries);
-        if (p1!=null) {
-            setThreshold(Long.parseLong(p1.getValue()));
-        }
-        if (p2!=null) {
-            setMaxQueries(Integer.parseInt(p2.getValue()));
-        }
     }
 
 

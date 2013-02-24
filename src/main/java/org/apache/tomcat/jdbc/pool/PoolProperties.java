@@ -20,6 +20,8 @@ package org.apache.tomcat.jdbc.pool;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Locale;
@@ -30,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * @author Filip Hanik
@@ -905,7 +908,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
     public static class InterceptorDefinition implements Serializable {
         private static final long serialVersionUID = 1L;
         protected String className;
-        protected Map<String,InterceptorProperty> properties = new HashMap<>();
+        protected InterceptorProperties properties = new InterceptorProperties();
         protected volatile Class<?> clazz = null;
         public InterceptorDefinition(String className) {
             this.className = className;
@@ -928,7 +931,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
             properties.put(p.getName(), p);
         }
 
-        public Map<String,InterceptorProperty> getProperties() {
+        public InterceptorProperties getProperties() {
             return properties;
         }
 
@@ -949,12 +952,38 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
             }
             return (Class<? extends JdbcInterceptor>)clazz;
         }
+
+		public JdbcInterceptor newInstance(JdbcInterceptor handler, InterceptorProperties properties)
+				throws ClassNotFoundException {
+			Class<? extends JdbcInterceptor> interceptorClass = getInterceptorClass();
+			// TODO: Cache constructor?
+			Constructor<? extends JdbcInterceptor> constructor;
+			try {
+				constructor = interceptorClass.getConstructor(JdbcInterceptor.class, InterceptorProperties.class);
+			} catch (NoSuchMethodException e) {
+				throw new IllegalStateException("Cannot instantiate handle (no suitable constructor): "
+						+ interceptorClass, e);
+			} catch (SecurityException e) {
+				throw new IllegalStateException("Cannot instantiate handle: " + interceptorClass, e);
+			}
+			JdbcInterceptor interceptor;
+			try {
+				interceptor = constructor.newInstance(handler, properties);
+			} catch (InstantiationException e) {
+				throw new IllegalStateException("Cannot instantiate handle: " + interceptorClass, e);
+			} catch (IllegalAccessException e) {
+				throw new IllegalStateException("Cannot instantiate handle: " + interceptorClass, e);
+			} catch (InvocationTargetException e) {
+				throw new IllegalStateException("Cannot instantiate handle: " + interceptorClass, e);
+			}
+			return interceptor;
+		}
     }
 
     public static class InterceptorProperty implements Serializable {
         private static final long serialVersionUID = 1L;
-        String name;
-        String value;
+        final String name;
+        final String value;
         public InterceptorProperty(String name, String value) {
             assert(name!=null);
             this.name = name;
@@ -1053,23 +1082,26 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
             return false;
         }
     }
+    
+    public static class InterceptorProperties extends HashMap<String, InterceptorProperty> {
+		private static final long serialVersionUID = 1L;
 
-    /**
-     * {@inheritDoc}
-     */
+		public boolean getValueAsBoolean(String key, boolean defaultValue) {
+			InterceptorProperty property = get(key);
+			if (property == null) {
+				return defaultValue;
+			}
+			return property.getValueAsBoolean(defaultValue);
+		}
 
-    @Override
-    public boolean isUseEquals() {
-        return useEquals;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-
-    @Override
-    public void setUseEquals(boolean useEquals) {
-        this.useEquals = useEquals;
+		public int getValueAsInt(String key, int defaultValue) {
+			InterceptorProperty property = get(key);
+			if (property == null) {
+				return defaultValue;
+			}
+			return property.getValueAsInt(defaultValue);
+		}
+    	
     }
 
     /**

@@ -46,6 +46,8 @@ import javax.management.openmbean.OpenDataException;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
 /**
@@ -69,7 +71,14 @@ public class SlowQueryReportJmx extends SlowQueryReport implements NotificationE
         new ConcurrentHashMap<>();
 
 
-    //==============================JMX STUFF========================
+    public SlowQueryReportJmx(JdbcInterceptor next, InterceptorProperties properties) {
+		super(next, properties);
+		
+		this.notifyPool = properties.getValueAsBoolean("notifyPool", true);
+	}
+
+
+	//==============================JMX STUFF========================
     protected volatile NotificationBroadcasterSupport notifier = new NotificationBroadcasterSupport();
 
     @Override
@@ -102,7 +111,7 @@ public class SlowQueryReportJmx extends SlowQueryReport implements NotificationE
 
     protected static AtomicLong notifySequence = new AtomicLong(0);
 
-    protected boolean notifyPool = true;
+    protected final boolean notifyPool;
 
     protected ConnectionPool pool = null;
 
@@ -214,10 +223,6 @@ public class SlowQueryReportJmx extends SlowQueryReport implements NotificationE
         return notifyPool;
     }
 
-    public void setNotifyPool(boolean notifyPool) {
-        this.notifyPool = notifyPool;
-    }
-
     /**
      * JMX operation - remove all stats for this connection pool
      */
@@ -273,15 +278,19 @@ public class SlowQueryReportJmx extends SlowQueryReport implements NotificationE
 
 
     public ObjectName getObjectName(Class<?> clazz, String poolName) throws MalformedObjectNameException {
-        ObjectName oname = null;
-        if (getProperties().containsKey(objectNameAttribute)) {
-            oname = new ObjectName(getProperties().get(objectNameAttribute).getValue());
-        } else {
-            oname = new ObjectName(ConnectionPool.POOL_JMX_TYPE_PREFIX+clazz.getName()+",name=" + poolName);
-        }
-        return oname;
+    	return buildObjectName(getProperties(), clazz, poolName);
     }
 
+    public static ObjectName buildObjectName(InterceptorProperties properties, Class<?> clazz, String poolName) throws MalformedObjectNameException {
+    	 ObjectName oname = null;
+         if (properties != null && properties.containsKey(objectNameAttribute)) {
+             oname = new ObjectName(properties.get(objectNameAttribute).getValue());
+         } else {
+             oname = new ObjectName(ConnectionPool.POOL_JMX_TYPE_PREFIX+clazz.getName()+",name=" + poolName);
+         }
+         return oname;
+    }
+    
     protected void registerJmx() {
         try {
             //only if we notify the pool itself
@@ -305,16 +314,6 @@ public class SlowQueryReportJmx extends SlowQueryReport implements NotificationE
             log.error("Jmx registration failed, no JMX data will be exposed for the query stats.",e);
         } catch (NotCompliantMBeanException e) {
             log.error("Jmx registration failed, no JMX data will be exposed for the query stats.",e);
-        }
-    }
-
-    @Override
-    public void setProperties(Map<String, InterceptorProperty> properties) {
-        super.setProperties(properties);
-        final String threshold = "notifyPool";
-        InterceptorProperty p1 = properties.get(threshold);
-        if (p1!=null) {
-            this.setNotifyPool(Boolean.parseBoolean(p1.getValue()));
         }
     }
 

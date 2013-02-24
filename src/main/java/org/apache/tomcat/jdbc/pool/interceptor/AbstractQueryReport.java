@@ -26,10 +26,13 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 /**
  * Abstract class that wraps statements and intercepts query executions.
  * @author fhanik
@@ -51,8 +54,8 @@ public abstract class AbstractQueryReport extends AbstractCreateStatementInterce
         new Constructor[AbstractCreateStatementInterceptor.STATEMENT_TYPE_COUNT];
 
 
-    public AbstractQueryReport() {
-        super();
+    public AbstractQueryReport(JdbcInterceptor next, InterceptorProperties properties) {
+        super(next, properties);
     }
 
     /**

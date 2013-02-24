@@ -17,10 +17,13 @@
 package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * Abstraction interceptor. This component intercepts all calls to create some type of SQL statement.
@@ -47,8 +50,8 @@ public abstract class  AbstractCreateStatementInterceptor extends JdbcIntercepto
 
     protected static final String[] EXECUTE_TYPES = {EXECUTE, EXECUTE_QUERY, EXECUTE_UPDATE, EXECUTE_BATCH};
 
-    public  AbstractCreateStatementInterceptor() {
-        super();
+    protected AbstractCreateStatementInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
+        super(next, properties);
     }
 
     /**

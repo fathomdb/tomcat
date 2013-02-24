@@ -416,11 +416,6 @@ public class ConnectionPool extends NotificationBroadcasterSupport implements Co
     }
 
     @Override
-    public boolean isUseEquals() {
-        return getPoolProperties().isUseEquals();
-    }
-
-    @Override
     public void setAbandonWhenPercentageFull(int percentage) {
         getPoolProperties().setAbandonWhenPercentageFull(percentage);
     }
@@ -632,12 +627,6 @@ public class ConnectionPool extends NotificationBroadcasterSupport implements Co
     @Override
     public void setUrl(String url) {
         getPoolProperties().setUrl(url);
-    }
-
-
-    @Override
-    public void setUseEquals(boolean useEquals) {
-        getPoolProperties().setUseEquals(useEquals);
     }
 
 
