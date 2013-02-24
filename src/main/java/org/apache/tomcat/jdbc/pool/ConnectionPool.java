@@ -285,11 +285,7 @@ public class ConnectionPool {
     protected Connection setupConnection(PooledConnection con) throws SQLException {
         //fetch previously cached interceptor proxy - one per connection
         JdbcInterceptor handler = con.getHandler();
-        if (handler==null) {
-            handler = buildHandler(con);
-            //cache handler for the next iteration
-            con.setHandler(handler);
-        }
+       
             
         handler.initialize(this, con);
 
@@ -312,28 +308,6 @@ public class ConnectionPool {
         }
 
     }
-
-
-	private JdbcInterceptor buildHandler(PooledConnection con) throws SQLException {
-		JdbcInterceptor handler = new ProxyConnection(this,con);
-		//set up the interceptor chain
-		PoolProperties.InterceptorDefinition[] proxies = getPoolProperties().getJdbcInterceptorsAsArray();
-		for (int i=proxies.length-1; i>=0; i--) {
-		    try {
-		        //create a new instance
-		        JdbcInterceptor interceptor = proxies[i].newInstance(
-		        		handler, proxies[i].getProperties()
-		        		);
-		        //configure the last one to be held by the connection
-		        handler = interceptor;
-		    }catch(Exception x) {
-		        SQLException sx = new SQLException("Unable to instantiate interceptor chain.");
-		        sx.initCause(x);
-		        throw sx;
-		    }
-		}
-		return handler;
-	}
 
     /**
      * Creates and caches a {@link java.lang.reflect.Constructor} used to instantiate the proxy object.
@@ -586,7 +560,11 @@ public class ConnectionPool {
         // we could have threads stuck in idle.poll(timeout) that will never be
         // notified
         if (waitcount.get() > 0) {
-            idle.offer(create(true));
+            try {
+				idle.offer(create(true));
+			} catch (SQLException e) {
+				log.warn("Unable to create new connection", e);
+			}
         }
     }
 
@@ -1083,10 +1061,11 @@ public class ConnectionPool {
     /**
      * Create a new pooled connection object. Not connected nor validated.
      * @return a pooled connection object
+     * @throws SQLException 
      */
-    protected PooledConnection create(boolean incrementCounter) {
-        if (incrementCounter) size.incrementAndGet();
+    protected PooledConnection create(boolean incrementCounter) throws SQLException {
         PooledConnection con = new PooledConnection(getPoolProperties(), this);
+        if (incrementCounter) size.incrementAndGet();
         return con;
     }
 
