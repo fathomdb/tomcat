@@ -164,10 +164,9 @@ public class StatementCache extends StatementDecoratorInterceptor {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         boolean process = process(this.types, method, false);
         if (process && args.length>0 && args[0] instanceof String) {
-            CachedStatement statement = isCached((String)args[0]);
+            String sql = (String) args[0];
+            CachedStatement statement = removeFromCache(sql);
             if (statement!=null) {
-                //remove it from the cache since it is used
-                removeStatement(statement);
                 return statement.getActualProxy();
             } else {
                 return super.invoke(proxy, method, args);
@@ -178,8 +177,8 @@ public class StatementCache extends StatementDecoratorInterceptor {
     }
 
 
-    public CachedStatement isCached(String sql) {
-        return statements.get(sql);
+    public CachedStatement removeFromCache(String sql) {
+        return statements.remove(sql);
     }
 
     public boolean cacheStatement(CachedStatement proxy) {
