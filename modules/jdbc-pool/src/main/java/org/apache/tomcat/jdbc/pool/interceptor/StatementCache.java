@@ -172,11 +172,11 @@ public class StatementCache extends StatementDecoratorInterceptor {
     }
 
 
-    public CachedStatement removeFromCache(String sql) {
+    private CachedStatement removeFromCache(String sql) {
         return statements.remove(sql);
     }
 
-    public boolean cacheStatement(CachedStatement proxy) {
+    private boolean cacheStatement(CachedStatement proxy) {
         if (proxy.getSql()==null) {
             return false;
         } else if (statements.containsKey(proxy.getSql())) {
@@ -188,7 +188,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
         }
     }
 
-    public boolean removeStatement(CachedStatement proxy) {
+    private boolean removeStatement(CachedStatement proxy) {
         if (statements.remove(proxy.getSql()) != null) {
             return true;
         } else {
