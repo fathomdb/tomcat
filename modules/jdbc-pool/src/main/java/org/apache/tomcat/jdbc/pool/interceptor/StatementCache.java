@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,14 +35,13 @@ public class StatementCache extends StatementDecoratorInterceptor {
     protected static final String[] PREPARED_TYPE = new String[] {PREPARE_STATEMENT};
     protected static final String[] NO_TYPE = new String[] {};
 
-    protected static final String STATEMENT_CACHE_ATTR = StatementCache.class.getName() + ".cache";
-
     /*begin properties for the statement cache*/
     private boolean cachePrepared = true;
     private boolean cacheCallable = false;
     private int maxCacheSize = 50;
     private PooledConnection pcon;
     private String[] types;
+    private ConcurrentHashMap<String, CachedStatement> statements;
 
 
     public boolean isCachePrepared() {
@@ -115,18 +115,13 @@ public class StatementCache extends StatementDecoratorInterceptor {
         } else {
             cacheSize = cacheSizeMap.get(parent);
             this.pcon = con;
-            if (!pcon.getAttributes().containsKey(STATEMENT_CACHE_ATTR)) {
-                ConcurrentHashMap<String,CachedStatement> cache =
-                        new ConcurrentHashMap<>();
-                pcon.getAttributes().put(STATEMENT_CACHE_ATTR,cache);
-            }
+            this.statements = new ConcurrentHashMap<String,CachedStatement>();
         }
     }
 
     @Override
     public void disconnected(ConnectionPool parent, PooledConnection con, boolean finalizing) {
-        ConcurrentHashMap<String,CachedStatement> statements =
-            (ConcurrentHashMap<String,CachedStatement>)con.getAttributes().get(STATEMENT_CACHE_ATTR);
+        assert con == pcon;
 
         if (statements!=null) {
             for (Map.Entry<String, CachedStatement> p : statements.entrySet()) {
@@ -178,22 +173,15 @@ public class StatementCache extends StatementDecoratorInterceptor {
         }
     }
 
-    private ConcurrentHashMap<String,CachedStatement> getStatementCache(PooledConnection pooledConnection) {
-        ConcurrentHashMap<String,CachedStatement> cache =
-                (ConcurrentHashMap<String,CachedStatement>)pcon.getAttributes().get(STATEMENT_CACHE_ATTR);
-        return cache;
-    }
 
     public CachedStatement isCached(String sql) {
-        ConcurrentHashMap<String,CachedStatement> cache = getStatementCache(pcon);
-        return cache.get(sql);
+        return statements.get(sql);
     }
 
     public boolean cacheStatement(CachedStatement proxy) {
-        ConcurrentHashMap<String,CachedStatement> cache = getStatementCache(pcon);
         if (proxy.getSql()==null) {
             return false;
-        } else if (cache.containsKey(proxy.getSql())) {
+        } else if (statements.containsKey(proxy.getSql())) {
             return false;
         } else if (cacheSize.get()>=maxCacheSize) {
             return false;
@@ -202,14 +190,13 @@ public class StatementCache extends StatementDecoratorInterceptor {
             return false;
         } else {
             //cache the statement
-            cache.put(proxy.getSql(), proxy);
+            statements.put(proxy.getSql(), proxy);
             return true;
         }
     }
 
     public boolean removeStatement(CachedStatement proxy) {
-        ConcurrentHashMap<String,CachedStatement> cache = getStatementCache(pcon);
-        if (cache.remove(proxy.getSql()) != null) {
+        if (statements.remove(proxy.getSql()) != null) {
             cacheSize.decrementAndGet();
             return true;
         } else {
