@@ -178,15 +178,19 @@ public class StatementCache extends StatementDecoratorInterceptor {
         }
     }
 
-    public CachedStatement isCached(String sql) {
+    private ConcurrentHashMap<String,CachedStatement> getStatementCache(PooledConnection pooledConnection) {
         ConcurrentHashMap<String,CachedStatement> cache =
-            (ConcurrentHashMap<String,CachedStatement>)pcon.getAttributes().get(STATEMENT_CACHE_ATTR);
+                (ConcurrentHashMap<String,CachedStatement>)pcon.getAttributes().get(STATEMENT_CACHE_ATTR);
+        return cache;
+    }
+
+    public CachedStatement isCached(String sql) {
+        ConcurrentHashMap<String,CachedStatement> cache = getStatementCache(pcon);
         return cache.get(sql);
     }
 
     public boolean cacheStatement(CachedStatement proxy) {
-        ConcurrentHashMap<String,CachedStatement> cache =
-            (ConcurrentHashMap<String,CachedStatement>)pcon.getAttributes().get(STATEMENT_CACHE_ATTR);
+        ConcurrentHashMap<String,CachedStatement> cache = getStatementCache(pcon);
         if (proxy.getSql()==null) {
             return false;
         } else if (cache.containsKey(proxy.getSql())) {
@@ -204,8 +208,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
     }
 
     public boolean removeStatement(CachedStatement proxy) {
-        ConcurrentHashMap<String,CachedStatement> cache =
-            (ConcurrentHashMap<String,CachedStatement>)pcon.getAttributes().get(STATEMENT_CACHE_ATTR);
+        ConcurrentHashMap<String,CachedStatement> cache = getStatementCache(pcon);
         if (cache.remove(proxy.getSql()) != null) {
             cacheSize.decrementAndGet();
             return true;
