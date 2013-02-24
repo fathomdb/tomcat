@@ -60,6 +60,8 @@ public class ConnectionState extends JdbcInterceptor  {
     
     @Override
     public void cleanup() {
+    	super.cleanup();
+    	
         //we are resetting, reset our defaults
         autoCommit = null;
         transactionIsolation = null;
@@ -69,6 +71,8 @@ public class ConnectionState extends JdbcInterceptor  {
 
     @Override
     public void initialize(ConnectionPool parent, PooledConnection con) {
+    	super.initialize(parent, con);
+    	
         PoolConfiguration poolProperties = parent.getPoolProperties();
         if (poolProperties.getDefaultTransactionIsolation()!=DataSourceFactory.UNKNOWN_TRANSACTIONISOLATION) {
             try {

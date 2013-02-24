@@ -142,12 +142,11 @@ public abstract class JdbcInterceptor implements InvocationHandler {
      * @param parent - the connection pool owning the connection
      * @param con - the pooled connection
      */
-    public abstract void initialize(ConnectionPool parent, PooledConnection con);
-
-    /**
-     * Gets called when we are closing down the connection.
-     */
-    public abstract void cleanup();
+    public void initialize(ConnectionPool parent, PooledConnection con) {
+    	if (next != null) {
+    		next.initialize(parent, con);
+    	}
+    }
 
     /**
      * Called when {@link java.sql.Connection#close()} is called on the underlying connection.
@@ -200,4 +199,14 @@ public abstract class JdbcInterceptor implements InvocationHandler {
 		throw new IllegalStateException();
 	}
 
+	/**
+	 * Cleanup state associated with a pool connection
+	 */
+	public void cleanup() {
+		if (next != null) {
+			next.cleanup();
+		}
+	}
+    
+    
 }

@@ -296,8 +296,6 @@ public class ConnectionPool {
                     JdbcInterceptor interceptor = proxies[i].newInstance(
                     		handler, proxies[i].getProperties()
                     		);
-                    //call initialize
-                    interceptor.initialize(this, con);
                     //configure the last one to be held by the connection
                     handler = interceptor;
                 }catch(Exception x) {
@@ -308,14 +306,9 @@ public class ConnectionPool {
             }
             //cache handler for the next iteration
             con.setHandler(handler);
-        } else {
-            JdbcInterceptor next = handler;
-            //we have a cached handler, reset it
-            while (next!=null) {
-                next.initialize(this, con);
-                next = next.getNext();
-            }
         }
+            
+        handler.initialize(this, con);
 
         try {
             getProxyConstructor(con.getXAConnection() != null);
@@ -579,7 +572,7 @@ public class ConnectionPool {
             if (con.release()) {
                 //counter only decremented once
                 size.addAndGet(-1);
-                con.setHandler(null);
+                con.cleanup();
             }
         } finally {
             con.unlock();
@@ -1119,9 +1112,8 @@ public class ConnectionPool {
      */
     protected void finalize(PooledConnection con) {
         JdbcInterceptor handler = con.getHandler();
-        while (handler!=null) {
-            handler.cleanup();
-            handler=handler.getNext();
+        if (handler != null) {
+        	handler.cleanup();
         }
     }
 
