@@ -18,6 +18,8 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.Statement;
+
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 
@@ -65,7 +67,7 @@ public abstract class  AbstractCreateStatementInterceptor extends JdbcIntercepto
                 long start = System.currentTimeMillis();
                 Object statement = super.invokeMethod(proxy,method,args);
                 long delta = System.currentTimeMillis() - start;
-                return createStatement(proxy,method,args,statement, delta);
+                return createStatement(proxy,method,args, (Statement) statement, delta);
             } else {
                 return super.invokeMethod(proxy,method,args);
             }
@@ -83,7 +85,7 @@ public abstract class  AbstractCreateStatementInterceptor extends JdbcIntercepto
      * @param statement the statement that the underlying connection created
      * @return a {@link java.sql.Statement} object
      */
-    public abstract Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time);
+    public abstract Object createStatement(Connection proxy, Method method, Object[] args, Statement statement, long time);
 
     /**
      * Method invoked when the operation {@link java.sql.Connection#close()} is invoked.

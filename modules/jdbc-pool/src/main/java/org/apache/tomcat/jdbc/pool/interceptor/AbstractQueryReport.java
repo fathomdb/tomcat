@@ -164,7 +164,7 @@ public abstract class AbstractQueryReport extends AbstractCreateStatementInterce
      * Creates a statement interceptor to monitor query response times
      */
     @Override
-    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Statement statement, long time) {
         try {
             Object result = null;
             String name = method.getName();
