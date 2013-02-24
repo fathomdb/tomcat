@@ -114,14 +114,15 @@ public class StatementCache extends StatementDecoratorInterceptor {
     @Override
     public void initialize(ConnectionPool parent, PooledConnection con) {
         super.initialize(parent, con);
-        if (parent==null) {
-            this.pcon = null;
-            this.statements = null;
-        } else if (this.pcon != con) {
-            // TODO: Close statements (fix reset instead)
-            this.pcon = con;
-            this.statements = new LruCache(maxCacheSize);
-        }
+        this.pcon = con;
+        this.statements = new LruCache(maxCacheSize);
+    }
+
+    @Override
+    public void cleanup() {
+        super.cleanup();
+        this.pcon = null;
+        this.statements = null;
     }
 
     @Override

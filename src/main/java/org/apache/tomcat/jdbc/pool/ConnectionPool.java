@@ -296,7 +296,7 @@ public class ConnectionPool {
                     interceptor.setProperties(proxies[i].getProperties());
                     //setup the chain
                     interceptor.setNext(handler);
-                    //call reset
+                    //call initialize
                     interceptor.initialize(this, con);
                     //configure the last one to be held by the connection
                     handler = interceptor;
@@ -1122,7 +1122,7 @@ public class ConnectionPool {
     protected void finalize(PooledConnection con) {
         JdbcInterceptor handler = con.getHandler();
         while (handler!=null) {
-            handler.initialize(null, null);
+            handler.cleanup();
             handler=handler.getNext();
         }
     }

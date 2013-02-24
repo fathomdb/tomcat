@@ -124,7 +124,6 @@ public class SlowQueryReportJmx extends SlowQueryReport implements NotificationE
 
     @Override
     public void initialize(ConnectionPool parent, PooledConnection con) {
-        // TODO Auto-generated method stub
         super.initialize(parent, con);
         if (parent!=null) {
             poolName = parent.getName();
@@ -133,6 +132,10 @@ public class SlowQueryReportJmx extends SlowQueryReport implements NotificationE
         }
     }
 
+    @Override
+    public void cleanup() {
+        super.cleanup();
+    }
 
     @Override
     public void poolClosed(ConnectionPool pool) {

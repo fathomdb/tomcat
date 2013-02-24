@@ -44,5 +44,9 @@ public class TestException extends DefaultTestCase {
         public void initialize(ConnectionPool parent, PooledConnection con) {
             // TODO Auto-generated method stub
         }
+
+        @Override
+        public void cleanup() {
+        }
     }
 }
