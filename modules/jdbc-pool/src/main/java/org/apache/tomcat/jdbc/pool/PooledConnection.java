@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;
+import org.apache.tomcat.jdbc.pool.interceptor.StatementCache;
 
 /**
  * Represents a pooled connection
@@ -709,6 +710,17 @@ public class PooledConnection {
 		if (handler != null) {
 			handler.cleanup();
 		}
+	}
+
+	public <T> T getHandler(Class<T> clazz) {
+		JdbcInterceptor i = handler;
+		while (i != null) {
+			if (clazz.isInstance(i)) {
+				return (T) i;
+			}
+			i = i.getNext();
+		}
+		return null;
 	}
 
 }
