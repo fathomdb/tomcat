@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -45,7 +44,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * Implementation of simple connection pool.

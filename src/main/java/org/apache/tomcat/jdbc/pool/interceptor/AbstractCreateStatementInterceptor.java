@@ -18,13 +18,8 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.util.Map;
-
-import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
-import org.apache.tomcat.jdbc.pool.PooledConnection;
-import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * Abstraction interceptor. This component intercepts all calls to create some type of SQL statement.

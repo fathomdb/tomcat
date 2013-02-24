@@ -48,7 +48,6 @@ import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
-import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
 /**
  * Publishes data to JMX and provides notifications
