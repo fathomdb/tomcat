@@ -667,7 +667,7 @@ public class PooledConnection {
         if (this.handler!=null && this.handler!=handler) {
             JdbcInterceptor interceptor = this.handler;
             while (interceptor!=null) {
-                interceptor.initialize(null, null);
+                interceptor.cleanup();
                 interceptor = interceptor.getNext();
             }//while
         }//end if

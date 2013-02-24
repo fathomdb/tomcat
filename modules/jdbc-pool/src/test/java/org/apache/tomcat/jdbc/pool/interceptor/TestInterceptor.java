@@ -47,6 +47,11 @@ public class TestInterceptor extends JdbcInterceptor {
     }
 
     @Override
+    public void cleanup() {
+        // NO-OP
+    }
+
+    @Override
     public void setProperties(Map<String, InterceptorProperty> properties) {
         instancecount.incrementAndGet();
         super.setProperties(properties);

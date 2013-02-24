@@ -68,6 +68,12 @@ public class ProxyConnection extends JdbcInterceptor {
         this.connection = con;
     }
 
+    @Override
+    public void cleanup() {
+        this.pool = null;
+        this.connection = null;
+    }
+
     public boolean isWrapperFor(Class<?> iface) {
         if (iface == XAConnection.class && connection.getXAConnection()!=null) {
             return true;

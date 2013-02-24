@@ -79,4 +79,9 @@ public class TrapException extends JdbcInterceptor {
         // NOOP
     }
 
+    @Override
+    public void cleanup() {
+        // NOOP
+    }
+
 }

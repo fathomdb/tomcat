@@ -164,6 +164,11 @@ public abstract class JdbcInterceptor implements InvocationHandler {
     public abstract void initialize(ConnectionPool parent, PooledConnection con);
 
     /**
+     * Gets called when we are closing down the connection.
+     */
+    public abstract void cleanup();
+
+    /**
      * Called when {@link java.sql.Connection#close()} is called on the underlying connection.
      * This is to notify the interceptors, that the physical connection has been released.
      * Implementation of this method should be thought through with care, as no actions should trigger an exception.
