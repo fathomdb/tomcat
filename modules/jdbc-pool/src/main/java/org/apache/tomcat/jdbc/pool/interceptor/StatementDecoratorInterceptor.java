@@ -153,11 +153,10 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
     throws InstantiationException, IllegalAccessException, InvocationTargetException {
         Object result = null;
         StatementProxy<Statement> statementProxy =
-                new StatementProxy<>((Statement)statement,sql);
+                new StatementProxy<>((Statement)statement,sql, constructor);
         result = constructor.newInstance(new Object[] { statementProxy });
         statementProxy.setActualProxy(result);
         statementProxy.setConnection(proxy);
-        statementProxy.setConstructor(constructor);
         return result;
     }
 
@@ -181,13 +180,15 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
         protected T delegate;
         private Object actualProxy;
         private Object connection;
-        private String sql;
-        private Constructor<?> constructor;
+        private final String sql;
+        private final Constructor<?> constructor;
 
-        public StatementProxy(T delegate, String sql) {
+        public StatementProxy(T delegate, String sql, Constructor<?> constructor) {
             this.delegate = delegate;
             this.sql = sql;
+            this.constructor = constructor;
         }
+        
         public T getDelegate() {
             return this.delegate;
         }
@@ -214,9 +215,7 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
         public Constructor<?> getConstructor() {
             return constructor;
         }
-        public void setConstructor(Constructor<?> constructor) {
-            this.constructor = constructor;
-        }
+
         public void closeInvoked() {
             if (getDelegate()!=null) {
                 try {
