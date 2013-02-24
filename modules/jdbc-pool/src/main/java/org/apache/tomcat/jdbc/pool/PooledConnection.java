@@ -17,6 +17,8 @@
 package org.apache.tomcat.jdbc.pool;
 
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -111,7 +113,7 @@ public class PooledConnection {
      * so that we don't create a new list of interceptors each time we borrow
      * the connection
      */
-    private volatile JdbcInterceptor handler = null;
+    private final JdbcInterceptor handler;
 
     private AtomicBoolean released = new AtomicBoolean(false);
 
@@ -123,13 +125,37 @@ public class PooledConnection {
      * Constructor
      * @param prop - pool properties
      * @param parent - the parent connection pool
+     * @throws SQLException 
      */
-    public PooledConnection(PoolConfiguration prop, ConnectionPool parent) {
+    public PooledConnection(PoolConfiguration prop, ConnectionPool parent) throws SQLException {
         poolProperties = prop;
         this.parent = parent;
         connectionVersion = parent.getPoolVersion();
+        
+        handler = buildHandlerChain(parent);
     }
 
+	JdbcInterceptor buildHandlerChain(ConnectionPool parent) throws SQLException {
+		JdbcInterceptor handler = new ProxyConnection(parent,this);
+		//set up the interceptor chain
+		PoolProperties.InterceptorDefinition[] proxies = getPoolProperties().getJdbcInterceptorsAsArray();
+		for (int i=proxies.length-1; i>=0; i--) {
+		    try {
+		        //create a new instance
+		        JdbcInterceptor interceptor = proxies[i].newInstance(
+		        		handler, proxies[i].getProperties()
+		        		);
+		        //configure the last one to be held by the connection
+		        handler = interceptor;
+		    }catch(Exception x) {
+		        SQLException sx = new SQLException("Unable to instantiate interceptor chain.");
+		        sx.initCause(x);
+		        throw sx;
+		    }
+		}
+		return handler;
+	}
+	
     public long getConnectionVersion() {
         return connectionVersion;
     }
@@ -663,19 +689,6 @@ public class PooledConnection {
         return handler;
     }
 
-    public void setHandler(JdbcInterceptor handler) {
-//        if (this.handler!=null && this.handler!=handler) {
-//            JdbcInterceptor interceptor = this.handler;
-//            while (interceptor!=null) {
-//                interceptor.cleanup();
-//                interceptor = interceptor.getNext();
-//            }//while
-//        }//end if
-    	if (this.handler != null) {
-    		throw new IllegalStateException();
-    	}
-        this.handler = handler;
-    }
 
     @Override
     public String toString() {
