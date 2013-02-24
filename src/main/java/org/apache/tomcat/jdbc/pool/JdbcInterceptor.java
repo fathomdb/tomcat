@@ -161,7 +161,7 @@ public abstract class JdbcInterceptor implements InvocationHandler {
      * @param parent - the connection pool owning the connection
      * @param con - the pooled connection
      */
-    public abstract void reset(ConnectionPool parent, PooledConnection con);
+    public abstract void initialize(ConnectionPool parent, PooledConnection con);
 
     /**
      * Called when {@link java.sql.Connection#close()} is called on the underlying connection.

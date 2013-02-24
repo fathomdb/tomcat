@@ -65,9 +65,9 @@ public class StatementFinalizer extends AbstractCreateStatementInterceptor {
     }
 
     @Override
-    public void reset(ConnectionPool parent, PooledConnection con) {
+    public void initialize(ConnectionPool parent, PooledConnection con) {
         statements.clear();
-        super.reset(parent, con);
+        super.initialize(parent, con);
     }
 
 

@@ -112,8 +112,8 @@ public class StatementCache extends StatementDecoratorInterceptor {
 
     /*begin the actual statement cache*/
     @Override
-    public void reset(ConnectionPool parent, PooledConnection con) {
-        super.reset(parent, con);
+    public void initialize(ConnectionPool parent, PooledConnection con) {
+        super.initialize(parent, con);
         if (parent==null) {
             this.pcon = null;
             this.statements = null;

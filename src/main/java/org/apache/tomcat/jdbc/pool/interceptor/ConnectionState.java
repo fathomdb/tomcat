@@ -53,7 +53,7 @@ public class ConnectionState extends JdbcInterceptor  {
 
 
     @Override
-    public void reset(ConnectionPool parent, PooledConnection con) {
+    public void initialize(ConnectionPool parent, PooledConnection con) {
         if (parent==null || con==null) {
             //we are resetting, reset our defaults
             autoCommit = null;

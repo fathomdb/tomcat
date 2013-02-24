@@ -297,7 +297,7 @@ public class ConnectionPool {
                     //setup the chain
                     interceptor.setNext(handler);
                     //call reset
-                    interceptor.reset(this, con);
+                    interceptor.initialize(this, con);
                     //configure the last one to be held by the connection
                     handler = interceptor;
                 }catch(Exception x) {
@@ -312,7 +312,7 @@ public class ConnectionPool {
             JdbcInterceptor next = handler;
             //we have a cached handler, reset it
             while (next!=null) {
-                next.reset(this, con);
+                next.initialize(this, con);
                 next = next.getNext();
             }
         }
@@ -1122,7 +1122,7 @@ public class ConnectionPool {
     protected void finalize(PooledConnection con) {
         JdbcInterceptor handler = con.getHandler();
         while (handler!=null) {
-            handler.reset(null, null);
+            handler.initialize(null, null);
             handler=handler.getNext();
         }
     }
