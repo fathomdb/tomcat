@@ -57,10 +57,14 @@ public class ProxyConnection extends JdbcInterceptor {
 	@Override
 	public void initialize(ConnectionPool parent, PooledConnection con) {
 		closed = false;
+
+		super.initialize(parent, con);
 	}
     
     @Override
     public void cleanup() {
+    	super.cleanup();
+    	
     	closed = true;
     }
 

@@ -142,11 +142,6 @@ public class SlowQueryReportJmx extends SlowQueryReport implements NotificationE
     }
 
     @Override
-    public void cleanup() {
-        super.cleanup();
-    }
-
-    @Override
     public void poolClosed(ConnectionPool pool) {
         this.poolName = pool.getName();
         deregisterJmx();

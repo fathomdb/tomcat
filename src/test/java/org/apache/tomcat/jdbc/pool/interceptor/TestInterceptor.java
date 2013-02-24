@@ -46,14 +46,4 @@ public class TestInterceptor extends JdbcInterceptor {
         super.poolStarted(pool);
         poolstarted = true;
     }
-
-    @Override
-    public void initialize(ConnectionPool parent, PooledConnection con) {
-        // NO-OP
-    }
-
-    @Override
-    public void cleanup() {
-        // NO-OP
-    }
 }

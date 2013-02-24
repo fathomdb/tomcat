@@ -664,13 +664,16 @@ public class PooledConnection {
     }
 
     public void setHandler(JdbcInterceptor handler) {
-        if (this.handler!=null && this.handler!=handler) {
-            JdbcInterceptor interceptor = this.handler;
-            while (interceptor!=null) {
-                interceptor.cleanup();
-                interceptor = interceptor.getNext();
-            }//while
-        }//end if
+//        if (this.handler!=null && this.handler!=handler) {
+//            JdbcInterceptor interceptor = this.handler;
+//            while (interceptor!=null) {
+//                interceptor.cleanup();
+//                interceptor = interceptor.getNext();
+//            }//while
+//        }//end if
+    	if (this.handler != null) {
+    		throw new IllegalStateException();
+    	}
         this.handler = handler;
     }
 
@@ -690,5 +693,11 @@ public class PooledConnection {
     public HashMap<Object,Object> getAttributes() {
         return attributes;
     }
+
+	public void cleanup() {
+		if (handler != null) {
+			handler.cleanup();
+		}
+	}
 
 }
