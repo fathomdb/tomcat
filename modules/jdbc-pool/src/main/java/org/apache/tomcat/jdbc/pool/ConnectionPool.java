@@ -286,24 +286,7 @@ public class ConnectionPool {
         //fetch previously cached interceptor proxy - one per connection
         JdbcInterceptor handler = con.getHandler();
         if (handler==null) {
-            //build the proxy handler
-            handler = new ProxyConnection(this,con);
-            //set up the interceptor chain
-            PoolProperties.InterceptorDefinition[] proxies = getPoolProperties().getJdbcInterceptorsAsArray();
-            for (int i=proxies.length-1; i>=0; i--) {
-                try {
-                    //create a new instance
-                    JdbcInterceptor interceptor = proxies[i].newInstance(
-                    		handler, proxies[i].getProperties()
-                    		);
-                    //configure the last one to be held by the connection
-                    handler = interceptor;
-                }catch(Exception x) {
-                    SQLException sx = new SQLException("Unable to instantiate interceptor chain.");
-                    sx.initCause(x);
-                    throw sx;
-                }
-            }
+            handler = buildHandler(con);
             //cache handler for the next iteration
             con.setHandler(handler);
         }
@@ -329,6 +312,28 @@ public class ConnectionPool {
         }
 
     }
+
+
+	private JdbcInterceptor buildHandler(PooledConnection con) throws SQLException {
+		JdbcInterceptor handler = new ProxyConnection(this,con);
+		//set up the interceptor chain
+		PoolProperties.InterceptorDefinition[] proxies = getPoolProperties().getJdbcInterceptorsAsArray();
+		for (int i=proxies.length-1; i>=0; i--) {
+		    try {
+		        //create a new instance
+		        JdbcInterceptor interceptor = proxies[i].newInstance(
+		        		handler, proxies[i].getProperties()
+		        		);
+		        //configure the last one to be held by the connection
+		        handler = interceptor;
+		    }catch(Exception x) {
+		        SQLException sx = new SQLException("Unable to instantiate interceptor chain.");
+		        sx.initCause(x);
+		        throw sx;
+		    }
+		}
+		return handler;
+	}
 
     /**
      * Creates and caches a {@link java.lang.reflect.Constructor} used to instantiate the proxy object.
