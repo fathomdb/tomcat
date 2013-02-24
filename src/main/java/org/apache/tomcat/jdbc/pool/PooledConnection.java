@@ -17,8 +17,6 @@
 package org.apache.tomcat.jdbc.pool;
 
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
