@@ -75,7 +75,7 @@ public class TrapException extends JdbcInterceptor {
      * no-op for this interceptor. no state is stored.
      */
     @Override
-    public void reset(ConnectionPool parent, PooledConnection con) {
+    public void initialize(ConnectionPool parent, PooledConnection con) {
         // NOOP
     }
 
