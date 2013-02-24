@@ -21,7 +21,9 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,11 +44,26 @@ public class StatementCache extends StatementDecoratorInterceptor {
     /*begin properties for the statement cache*/
     private boolean cachePrepared = true;
     private boolean cacheCallable = false;
-    private int maxCacheSize = 50;
     private PooledConnection pcon;
     private String[] types;
-    private ConcurrentHashMap<String, CachedStatement> statements;
+    private LruCache statements;
+    private int maxCacheSize = 50;
 
+    static class LruCache extends LinkedHashMap<String, CachedStatement> {
+        private static final long serialVersionUID = 1L;
+
+        final int maxCacheSize;
+
+        public LruCache(int maxCacheSize) {
+            super(maxCacheSize, 0.75f, true);
+            this.maxCacheSize = maxCacheSize;
+        }
+
+        @Override
+        protected boolean removeEldestEntry(Entry<String, CachedStatement> eldest) {
+            return size() > maxCacheSize;
+        }
+    }
 
     public boolean isCachePrepared() {
         return cachePrepared;
@@ -62,10 +79,6 @@ public class StatementCache extends StatementDecoratorInterceptor {
 
     public String[] getTypes() {
         return types;
-    }
-
-    public AtomicInteger getCacheSize() {
-        return cacheSize;
     }
 
     @Override
@@ -90,36 +103,15 @@ public class StatementCache extends StatementDecoratorInterceptor {
     }
     /*end properties for the statement cache*/
 
-    /*begin the cache size*/
-    private static ConcurrentHashMap<ConnectionPool,AtomicInteger> cacheSizeMap =
-        new ConcurrentHashMap<>();
-
-    private AtomicInteger cacheSize;
-
-    @Override
-    public void poolStarted(ConnectionPool pool) {
-        cacheSizeMap.putIfAbsent(pool, new AtomicInteger(0));
-        super.poolStarted(pool);
-    }
-
-    @Override
-    public void poolClosed(ConnectionPool pool) {
-        cacheSizeMap.remove(pool);
-        super.poolClosed(pool);
-    }
-    /*end the cache size*/
-
     /*begin the actual statement cache*/
     @Override
     public void reset(ConnectionPool parent, PooledConnection con) {
         super.reset(parent, con);
         if (parent==null) {
-            cacheSize = null;
             this.pcon = null;
         } else {
-            cacheSize = cacheSizeMap.get(parent);
             this.pcon = con;
-            this.statements = new ConcurrentHashMap<String,CachedStatement>();
+            this.statements = new LruCache(maxCacheSize);
         }
     }
 
@@ -186,11 +178,6 @@ public class StatementCache extends StatementDecoratorInterceptor {
             return false;
         } else if (statements.containsKey(proxy.getSql())) {
             return false;
-        } else if (cacheSize.get()>=maxCacheSize) {
-            return false;
-        } else if (cacheSize.incrementAndGet()>maxCacheSize) {
-            cacheSize.decrementAndGet();
-            return false;
         } else {
             //cache the statement
             statements.put(proxy.getSql(), proxy);
@@ -200,7 +187,6 @@ public class StatementCache extends StatementDecoratorInterceptor {
 
     public boolean removeStatement(CachedStatement proxy) {
         if (statements.remove(proxy.getSql()) != null) {
-            cacheSize.decrementAndGet();
             return true;
         } else {
             return false;
@@ -221,7 +207,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
         public void closeInvoked() {
             //should we cache it
             boolean shouldClose = true;
-            if (!broken && cacheSize.get() < maxCacheSize) {
+            if (!broken) {
                 //cache a proxy so that we don't reuse the facade
                 CachedStatement proxy = new CachedStatement(getDelegate(),getSql());
                 try {
