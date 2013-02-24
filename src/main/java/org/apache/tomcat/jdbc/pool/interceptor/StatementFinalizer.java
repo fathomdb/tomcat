@@ -43,7 +43,7 @@ public class StatementFinalizer extends AbstractCreateStatementInterceptor {
     }
     
     @Override
-    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Statement statement, long time) {
         // TODO Auto-generated method stub
         try {
             if (statement instanceof Statement)

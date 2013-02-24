@@ -131,14 +131,14 @@ public class StatementCache extends StatementDecoratorInterceptor {
     
     @Override
     protected Object createDecorator(Connection proxy, Method method, Object[] args,
-                                     Object statement, Constructor<?> constructor, String sql)
+                                     Statement statement, Constructor<? extends Statement> constructor, String sql)
     throws InstantiationException, IllegalAccessException, InvocationTargetException {
         boolean process = process(this.types, method, false);
         if (process) {
             Object result = null;
-            CachedStatement statementProxy = new CachedStatement((Statement)statement,sql,constructor);
+            CachedStatement statementProxy = new CachedStatement(statement,sql,constructor);
             result = constructor.newInstance(new Object[] { statementProxy });
-            statementProxy.setActualProxy(result);
+            statementProxy.setActualProxy((Statement) result);
             statementProxy.setConnection(proxy);
             return result;
         } else {
@@ -194,7 +194,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
         boolean cached = false;
         boolean broken = false;
 
-        public CachedStatement(Statement parent, String sql, Constructor<?> constructor) {
+        public CachedStatement(Statement parent, String sql, Constructor<? extends Statement> constructor) {
             super(parent, sql, constructor);
         }
 
@@ -207,7 +207,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
                 CachedStatement proxy = new CachedStatement(getDelegate(),getSql(),getConstructor());
                 try {
                     //create a new facade
-                    Object actualProxy = getConstructor().newInstance(new Object[] { proxy });
+                    Statement actualProxy = getConstructor().newInstance(new Object[] { proxy });
                     proxy.setActualProxy(actualProxy);
                     proxy.setConnection(getConnection());
                     if (cacheStatement(proxy)) {

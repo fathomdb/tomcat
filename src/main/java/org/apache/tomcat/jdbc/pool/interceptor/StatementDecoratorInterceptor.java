@@ -47,7 +47,7 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
     /**
      * the constructors that are used to create statement proxies
      */
-    protected static final Constructor<?>[] constructors = new Constructor[AbstractCreateStatementInterceptor.STATEMENT_TYPE_COUNT];
+    protected static final Constructor<? extends Statement>[] constructors = new Constructor[AbstractCreateStatementInterceptor.STATEMENT_TYPE_COUNT];
 
     /**
      * the constructor to create the resultSet proxies
@@ -73,32 +73,24 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
      * @return - returns a constructor used to create new instances
      * @throws NoSuchMethodException
      */
-    protected Constructor<?> getConstructor(int idx, Class<?> clazz) throws NoSuchMethodException {
+    protected Constructor<? extends Statement> getConstructor(int idx, Class<? extends Statement> clazz) throws NoSuchMethodException {
         if (constructors[idx] == null) {
-            Class<?> proxyClass = Proxy.getProxyClass(StatementDecoratorInterceptor.class.getClassLoader(),
+            Class<? extends Statement> proxyClass = (Class<? extends Statement>)
+                    Proxy.getProxyClass(StatementDecoratorInterceptor.class.getClassLoader(),
                     new Class[] { clazz });
             constructors[idx] = proxyClass.getConstructor(new Class[] { InvocationHandler.class });
         }
         return constructors[idx];
     }
 
-    protected Constructor<?> getResultSetConstructor() throws NoSuchMethodException {
-        if (resultSetConstructor == null) {
-            Class<?> proxyClass = Proxy.getProxyClass(StatementDecoratorInterceptor.class.getClassLoader(),
-                    new Class[] { ResultSet.class });
-            resultSetConstructor = proxyClass.getConstructor(new Class[] { InvocationHandler.class });
-        }
-        return resultSetConstructor;
-    }
-
     /**
      * Creates a statement interceptor to monitor query response times
      */
     @Override
-    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Statement statement, long time) {
         try {
             String name = method.getName();
-            Constructor<?> constructor = null;
+            Constructor<? extends Statement> constructor = null;
             String sql = null;
             if (compare(CREATE_STATEMENT, name)) {
                 // createStatement
@@ -147,13 +139,13 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
      * @return  A new proxy for the Statement
      */
     protected Object createDecorator(Connection proxy, Method method, Object[] args,
-                                     Object statement, Constructor<?> constructor, String sql)
+                                     Statement statement, Constructor<? extends Statement> constructor, String sql)
     throws InstantiationException, IllegalAccessException, InvocationTargetException {
         Object result = null;
         StatementProxy<Statement> statementProxy =
-                new StatementProxy<>((Statement)statement,sql, constructor);
+                new StatementProxy<>(statement,sql, constructor);
         result = constructor.newInstance(new Object[] { statementProxy });
-        statementProxy.setActualProxy(result);
+        statementProxy.setActualProxy((Statement) result);
         statementProxy.setConnection(proxy);
         return result;
     }
@@ -176,12 +168,12 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
 
         protected boolean closed = false;
         protected T delegate;
-        private Object actualProxy;
+        private Statement actualProxy;
         private Connection connection;
         private final String sql;
-        private final Constructor<?> constructor;
+        private final Constructor<? extends Statement> constructor;
 
-        public StatementProxy(T delegate, String sql, Constructor<?> constructor) {
+        public StatementProxy(T delegate, String sql, Constructor<? extends Statement> constructor) {
             this.delegate = delegate;
             this.sql = sql;
             this.constructor = constructor;
@@ -202,15 +194,15 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
             return this.connection;
         }
 
-        public void setActualProxy(Object proxy){
+        public void setActualProxy(Statement proxy){
             this.actualProxy = proxy;
         }
-        public Object getActualProxy() {
+        public Statement getActualProxy() {
             return this.actualProxy;
         }
 
 
-        public Constructor<?> getConstructor() {
+        public Constructor<? extends Statement> getConstructor() {
             return constructor;
         }
 
@@ -270,8 +262,7 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
                 }
             }
             if (process){
-                Constructor<?> cons = getResultSetConstructor();
-                result = cons.newInstance(new Object[]{new ResultSetProxy(actualProxy, result)});
+                return new ResultSetProxy((ResultSet) result, actualProxy);
             }
             return result;
         }
@@ -292,32 +283,5 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
         }
     }
 
-    protected class ResultSetProxy implements InvocationHandler {
-
-        private Object st;
-        private Object delegate;
-
-        public ResultSetProxy(Object st, Object delegate) {
-            this.st = st;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getName().equals("getStatement")) {
-                return this.st;
-            } else {
-                try {
-                    return method.invoke(this.delegate, args);
-                } catch (Throwable t) {
-                    if (t instanceof InvocationTargetException
-                            && t.getCause() != null) {
-                        throw t.getCause();
-                    } else {
-                        throw t;
-                    }
-                }
-            }
-        }
-    }
+    
 }
