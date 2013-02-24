@@ -102,7 +102,7 @@ public class PooledConnection {
     /**
      * The parent
      */
-    protected ConnectionPool parent;
+    protected final ConnectionPool parent;
 
     private HashMap<Object, Object> attributes = new HashMap<>();
 
