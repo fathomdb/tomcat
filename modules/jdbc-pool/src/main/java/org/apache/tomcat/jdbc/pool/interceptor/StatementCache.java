@@ -112,6 +112,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
         super.reset(parent, con);
         if (parent==null) {
             this.pcon = null;
+            this.statements = null;
         } else {
             this.pcon = con;
             this.statements = new LruCache(maxCacheSize);
