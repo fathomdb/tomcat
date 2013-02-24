@@ -18,6 +18,7 @@ package org.apache.tomcat.jdbc.pool;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -90,7 +91,7 @@ public class ProxyConnection extends JdbcInterceptor {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
         if (compare(ISCLOSED_VAL,method)) {
             return Boolean.valueOf(isClosed());
         }

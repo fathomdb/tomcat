@@ -18,6 +18,7 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class StatementFinalizer extends AbstractCreateStatementInterceptor {
     }
     
     @Override
-    public Object createStatement(Object proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
         // TODO Auto-generated method stub
         try {
             if (statement instanceof Statement)

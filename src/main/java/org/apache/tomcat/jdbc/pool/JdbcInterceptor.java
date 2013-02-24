@@ -18,6 +18,7 @@ package org.apache.tomcat.jdbc.pool;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
@@ -26,7 +27,7 @@ import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 /**
  * Abstract class that is to be extended for implementations of interceptors.
  * Everytime an operation is called on the {@link java.sql.Connection} object the
- * {@link #invoke(Object, Method, Object[])} method on the interceptor will be called.
+ * {@link #invokeMethod(Object, Method, Object[])} method on the interceptor will be called.
  * Interceptors are useful to change or improve behavior of the connection pool.<br/>
  * Interceptors can receive a set of properties. Each sub class is responsible for parsing the properties during runtime when they
  * are needed or simply override the {@link #setProperties(Map)} method.
@@ -36,7 +37,7 @@ import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
  * @author Filip Hanik
  * @version 1.0
  */
-public abstract class JdbcInterceptor implements InvocationHandler {
+public abstract class JdbcInterceptor {
     /**
      * {@link java.sql.Connection#close()} method name
      */
@@ -98,9 +99,8 @@ public abstract class JdbcInterceptor implements InvocationHandler {
      * {@inheritDoc}
      */
 
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        return next.invoke(proxy,method,args);
+    public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
+        return next.invokeMethod(proxy,method,args);
     }
 
     /**

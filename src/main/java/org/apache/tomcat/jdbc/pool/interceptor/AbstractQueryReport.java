@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -166,7 +167,7 @@ public abstract class AbstractQueryReport extends AbstractCreateStatementInterce
      * Creates a statement interceptor to monitor query response times
      */
     @Override
-    public Object createStatement(Object proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
         try {
             Object result = null;
             String name = method.getName();

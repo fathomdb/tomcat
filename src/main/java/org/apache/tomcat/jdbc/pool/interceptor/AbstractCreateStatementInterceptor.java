@@ -17,6 +17,7 @@
 package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
@@ -58,20 +59,20 @@ public abstract class  AbstractCreateStatementInterceptor extends JdbcIntercepto
      * {@inheritDoc}
      */
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
         if (compare(CLOSE_VAL,method)) {
             closeInvoked();
-            return super.invoke(proxy, method, args);
+            return super.invokeMethod(proxy, method, args);
         } else {
             boolean process = false;
             process = isStatement(method, process);
             if (process) {
                 long start = System.currentTimeMillis();
-                Object statement = super.invoke(proxy,method,args);
+                Object statement = super.invokeMethod(proxy,method,args);
                 long delta = System.currentTimeMillis() - start;
                 return createStatement(proxy,method,args,statement, delta);
             } else {
-                return super.invoke(proxy,method,args);
+                return super.invokeMethod(proxy,method,args);
             }
         }
     }
@@ -87,7 +88,7 @@ public abstract class  AbstractCreateStatementInterceptor extends JdbcIntercepto
      * @param statement the statement that the underlying connection created
      * @return a {@link java.sql.Statement} object
      */
-    public abstract Object createStatement(Object proxy, Method method, Object[] args, Object statement, long time);
+    public abstract Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time);
 
     /**
      * Method invoked when the operation {@link java.sql.Connection#close()} is invoked.

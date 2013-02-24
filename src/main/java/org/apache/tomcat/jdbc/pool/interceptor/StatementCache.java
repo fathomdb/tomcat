@@ -18,6 +18,7 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.LinkedHashMap;
@@ -129,7 +130,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
 
     
     @Override
-    protected Object createDecorator(Object proxy, Method method, Object[] args,
+    protected Object createDecorator(Connection proxy, Method method, Object[] args,
                                      Object statement, Constructor<?> constructor, String sql)
     throws InstantiationException, IllegalAccessException, InvocationTargetException {
         boolean process = process(this.types, method, false);
@@ -146,7 +147,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
         boolean process = process(this.types, method, false);
         if (process && args.length>0 && args[0] instanceof String) {
             String sql = (String) args[0];
@@ -154,10 +155,10 @@ public class StatementCache extends StatementDecoratorInterceptor {
             if (statement!=null) {
                 return statement.getActualProxy();
             } else {
-                return super.invoke(proxy, method, args);
+                return super.invokeMethod(proxy, method, args);
             }
         } else {
-            return super.invoke(proxy,method,args);
+            return super.invokeMethod(proxy,method,args);
         }
     }
 

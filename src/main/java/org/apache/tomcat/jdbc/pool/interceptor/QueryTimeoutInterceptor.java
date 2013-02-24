@@ -18,6 +18,7 @@
 package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class QueryTimeoutInterceptor extends AbstractCreateStatementInterceptor 
 	}
 
     @Override
-    public Object createStatement(Object proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
         if (statement instanceof Statement && timeout > 0) {
             Statement s = (Statement)statement;
             try {
