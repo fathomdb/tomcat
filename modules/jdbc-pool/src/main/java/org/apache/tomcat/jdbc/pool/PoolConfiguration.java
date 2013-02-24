@@ -665,25 +665,6 @@ public interface PoolConfiguration {
     public boolean isPoolSweeperEnabled();
 
     /**
-     * Set to true if you wish the <code>ProxyConnection</code> class to use <code>String.equals</code> instead of
-     * <code>==</code> when comparing method names.
-     * This property does not apply to added interceptors as those are configured individually.
-     * The default value is <code>false</code>.
-     * @return true if pool uses {@link String#equals(Object)} instead of == when comparing method names on {@link java.sql.Connection} methods
-     */
-    public boolean isUseEquals();
-
-    /**
-     * Set to true if you wish the <code>ProxyConnection</code> class to use <code>String.equals</code> instead of
-     * <code>==</code> when comparing method names.
-     * This property does not apply to added interceptors as those are configured individually.
-     * The default value is <code>false</code>.
-     * @param useEquals set to true if the pool should use {@link String#equals(Object)} instead of ==
-     * when comparing method names on {@link java.sql.Connection} methods
-     */
-    public void setUseEquals(boolean useEquals);
-
-    /**
      * Time in milliseconds to keep this connection alive even when used.
      * When a connection is returned to the pool, the pool will check to see if the
      * ((now - time-when-connected) > maxAge) has been reached, and if so,

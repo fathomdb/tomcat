@@ -28,9 +28,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * Implementation of <b>JdbcInterceptor</b> that proxies resultSets and statements.
@@ -52,6 +56,10 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
      */
     protected static Constructor<?> resultSetConstructor = null;
 
+    public StatementDecoratorInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
+        super(next, properties);
+    }
+ 
     @Override
     public void closeInvoked() {
         // nothing to do

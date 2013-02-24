@@ -18,10 +18,13 @@
 package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
 import org.apache.tomcat.jdbc.pool.ProxyConnection;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * Class that resets the abandoned timer on any activity on the
@@ -34,24 +37,16 @@ import org.apache.tomcat.jdbc.pool.ProxyConnection;
  */
 public class ResetAbandonedTimer extends AbstractQueryReport {
 
-    public ResetAbandonedTimer() {
-        // TODO Auto-generated constructor stub
+    public ResetAbandonedTimer(JdbcInterceptor next, InterceptorProperties properties) {
+    	super(next, properties);
     }
 
     public boolean resetTimer() {
         boolean result = false;
-        JdbcInterceptor interceptor = this.getNext();
-        while (interceptor!=null && result==false) {
-            if (interceptor instanceof ProxyConnection) {
-                PooledConnection con = ((ProxyConnection)interceptor).getConnection();
-                if (con!=null) {
-                    con.setTimestamp(System.currentTimeMillis());
-                    result = true;
-                } else {
-                    break;
-                }
-            }
-            interceptor = interceptor.getNext();
+        PooledConnection con = getPooledConnection();
+        if (con != null) {
+        	con.setTimestamp(System.currentTimeMillis());
+            result = true;
         }
         return result;
     }
@@ -59,7 +54,6 @@ public class ResetAbandonedTimer extends AbstractQueryReport {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        // TODO Auto-generated method stub
         Object result = super.invoke(proxy, method, args);
         resetTimer();
         return result;

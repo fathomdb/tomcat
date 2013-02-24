@@ -539,15 +539,6 @@ public class DataSourceProxy implements PoolConfiguration {
     }
 
     /**
-     * {@inheritDoc}
-     */
-
-    @Override
-    public void setUseEquals(boolean useEquals) {
-        this.getPoolProperties().setUseEquals(useEquals);
-    }
-
-    /**
      * no-op
      * {@link javax.sql.DataSource#getParentLogger}
      */
@@ -1106,14 +1097,6 @@ public class DataSourceProxy implements PoolConfiguration {
         return getPoolProperties().isJmxEnabled();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-
-    @Override
-    public boolean isUseEquals() {
-        return getPoolProperties().isUseEquals();
-    }
 
     /**
      * {@inheritDoc}

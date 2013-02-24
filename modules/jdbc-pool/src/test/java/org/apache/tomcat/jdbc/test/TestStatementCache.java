@@ -18,11 +18,15 @@ package org.apache.tomcat.jdbc.test;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 import org.apache.tomcat.jdbc.pool.interceptor.StatementCache;
 
 public class TestStatementCache extends DefaultTestCase {
@@ -126,7 +130,8 @@ public class TestStatementCache extends DefaultTestCase {
 
 
     public static class TestStatementCacheInterceptor extends StatementCache {
-        public TestStatementCacheInterceptor() {
+        public TestStatementCacheInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
+        	super(next, properties);        	    
             TestStatementCache.interceptor = this;
         }
     }

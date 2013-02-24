@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -44,6 +45,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * Implementation of simple connection pool.
@@ -285,17 +287,15 @@ public class ConnectionPool {
         JdbcInterceptor handler = con.getHandler();
         if (handler==null) {
             //build the proxy handler
-            handler = new ProxyConnection(this,con,getPoolProperties().isUseEquals());
+            handler = new ProxyConnection(this,con);
             //set up the interceptor chain
             PoolProperties.InterceptorDefinition[] proxies = getPoolProperties().getJdbcInterceptorsAsArray();
             for (int i=proxies.length-1; i>=0; i--) {
                 try {
                     //create a new instance
-                    JdbcInterceptor interceptor = proxies[i].getInterceptorClass().newInstance();
-                    //configure properties
-                    interceptor.setProperties(proxies[i].getProperties());
-                    //setup the chain
-                    interceptor.setNext(handler);
+                    JdbcInterceptor interceptor = proxies[i].newInstance(
+                    		handler, proxies[i].getProperties()
+                    		);
                     //call initialize
                     interceptor.initialize(this, con);
                     //configure the last one to be held by the connection
@@ -323,7 +323,7 @@ public class ConnectionPool {
             //TODO possible optimization, keep track if this connection was returned properly, and don't generate a new facade
             Connection connection = null;
             if (getPoolProperties().getUseDisposableConnectionFacade() ) {
-                connection = (Connection)proxyClassConstructor.newInstance(new Object[] { new DisposableConnectionFacade(handler) });
+                connection = (Connection)proxyClassConstructor.newInstance(new Object[] { new DisposableConnectionFacade(handler, null) });
             } else {
                 connection = (Connection)proxyClassConstructor.newInstance(new Object[] {handler});
             }
@@ -402,8 +402,7 @@ public class ConnectionPool {
         PoolProperties.InterceptorDefinition[] proxies = getPoolProperties().getJdbcInterceptorsAsArray();
         for (int i=0; i<proxies.length; i++) {
             try {
-                JdbcInterceptor interceptor = proxies[i].getInterceptorClass().newInstance();
-                interceptor.setProperties(proxies[i].getProperties());
+                JdbcInterceptor interceptor = proxies[i].newInstance(null, proxies[i].getProperties());
                 interceptor.poolClosed(this);
             }catch (Exception x) {
                 log.debug("Unable to inform interceptor of pool closure.",x);
@@ -468,8 +467,7 @@ public class ConnectionPool {
                 if (log.isDebugEnabled()) {
                     log.debug("Creating interceptor instance of class:"+proxies[i].getInterceptorClass());
                 }
-                JdbcInterceptor interceptor = proxies[i].getInterceptorClass().newInstance();
-                interceptor.setProperties(proxies[i].getProperties());
+                JdbcInterceptor interceptor = proxies[i].newInstance(null, proxies[i].getProperties());
                 interceptor.poolStarted(this);
             }catch (Exception x) {
                 log.error("Unable to inform interceptor of pool start.",x);
