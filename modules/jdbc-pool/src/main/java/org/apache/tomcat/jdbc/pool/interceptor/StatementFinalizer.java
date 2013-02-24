@@ -21,15 +21,12 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Map;
-
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
-import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 /**
  * Keeps track of statements associated with a connection and invokes close upon {@link java.sql.Connection#close()}
  * Useful for applications that dont close the associated statements after being done with a connection.

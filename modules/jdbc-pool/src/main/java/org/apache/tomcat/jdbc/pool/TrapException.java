@@ -17,15 +17,13 @@
 
 package org.apache.tomcat.jdbc.pool;
 
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
-import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
+
 /**
  * Interceptor that traps any unhandled exception types and throws an exception that has been declared by the method
  * called, or throw a SQLException if it is declared.
