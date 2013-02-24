@@ -53,11 +53,7 @@ public class DisposableConnectionFacade extends JdbcInterceptor {
 
 	@Override
 	public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
-		if (compare(EQUALS_VAL, method)) {
-			return Boolean.valueOf(this.equals(Proxy.getInvocationHandler(args[0])));
-		} else if (compare(HASHCODE_VAL, method)) {
-			return Integer.valueOf(this.hashCode());
-		} else if (closed) {
+		if (closed) {
 			if (compare(ISCLOSED_VAL, method)) {
 				return Boolean.TRUE;
 			} else if (compare(CLOSE_VAL, method)) {
