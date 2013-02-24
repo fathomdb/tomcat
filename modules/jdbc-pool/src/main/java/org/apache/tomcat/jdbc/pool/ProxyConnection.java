@@ -98,8 +98,8 @@ public class ProxyConnection extends JdbcInterceptor {
             if (closed) {
             	return null; //noop for already closed.
             }
-            pool.returnConnection(this.connection);
             closed = true;
+            pool.returnConnection(this.connection);
             return null;
         } else if (compare(TOSTRING_VAL,method)) {
             return this.toString();
