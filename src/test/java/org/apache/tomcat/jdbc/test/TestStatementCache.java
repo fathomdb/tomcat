@@ -77,17 +77,17 @@ public class TestStatementCache extends DefaultTestCase {
         Connection con = datasource.getConnection();
         PreparedStatement ps1 = con.prepareStatement("select 1");
         PreparedStatement ps2 = con.prepareStatement("select 1");
-        Assert.assertEquals(0,interceptor.getCacheSize().get());
+        Assert.assertEquals(0,interceptor.getCacheSize());
         ps1.close();
         Assert.assertTrue(ps1.isClosed());
-        Assert.assertEquals(1,interceptor.getCacheSize().get());
+        Assert.assertEquals(1,interceptor.getCacheSize());
         PreparedStatement ps3 = con.prepareStatement("select 1");
-        Assert.assertEquals(0,interceptor.getCacheSize().get());
+        Assert.assertEquals(0,interceptor.getCacheSize());
         ps2.close();
         Assert.assertTrue(ps2.isClosed());
         ps3.close();
         Assert.assertTrue(ps3.isClosed());
-        Assert.assertEquals(1,interceptor.getCacheSize().get());
+        Assert.assertEquals(1,interceptor.getCacheSize());
     }
 
     @Test
@@ -97,17 +97,17 @@ public class TestStatementCache extends DefaultTestCase {
         Connection con = datasource.getConnection();
         PreparedStatement ps1 = con.prepareStatement("select 1");
         PreparedStatement ps2 = con.prepareStatement("select 1");
-        Assert.assertEquals(0,interceptor.getCacheSize().get());
+        Assert.assertEquals(0,interceptor.getCacheSize());
         ps1.close();
         Assert.assertTrue(ps1.isClosed());
-        Assert.assertEquals(0,interceptor.getCacheSize().get());
+        Assert.assertEquals(0,interceptor.getCacheSize());
         PreparedStatement ps3 = con.prepareStatement("select 1");
-        Assert.assertEquals(0,interceptor.getCacheSize().get());
+        Assert.assertEquals(0,interceptor.getCacheSize());
         ps2.close();
         Assert.assertTrue(ps2.isClosed());
         ps3.close();
         Assert.assertTrue(ps3.isClosed());
-        Assert.assertEquals(0,interceptor.getCacheSize().get());
+        Assert.assertEquals(0,interceptor.getCacheSize());
     }
 
     @Test
@@ -171,7 +171,7 @@ public class TestStatementCache extends DefaultTestCase {
             PreparedStatement ps = con.prepareStatement("select "+i);
             ps.close();
         }
-        Assert.assertEquals(100,interceptor.getCacheSize().get());
+        Assert.assertEquals(100,interceptor.getCacheSize());
         con1.close();
         con2.close();
     }

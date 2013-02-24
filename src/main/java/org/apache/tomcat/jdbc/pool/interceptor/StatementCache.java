@@ -81,6 +81,13 @@ public class StatementCache extends StatementDecoratorInterceptor {
         return types;
     }
 
+    public int getCacheSize() {
+        if (statements == null) {
+            return 0;
+        }
+        return statements.size();
+    }
+
     @Override
     public void setProperties(Map<String, InterceptorProperty> properties) {
         super.setProperties(properties);
