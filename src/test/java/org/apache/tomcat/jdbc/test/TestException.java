@@ -17,12 +17,15 @@
 package org.apache.tomcat.jdbc.test;
 
 import java.sql.Connection;
+import java.util.Map;
 
 import org.junit.Test;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 public class TestException extends DefaultTestCase {
 
@@ -39,6 +42,10 @@ public class TestException extends DefaultTestCase {
 
 
     public static class TestInterceptor extends JdbcInterceptor {
+
+        public TestInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
+        	super(next, properties);
+        }
 
         @Override
         public void initialize(ConnectionPool parent, PooledConnection con) {

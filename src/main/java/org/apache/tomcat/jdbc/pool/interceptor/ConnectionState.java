@@ -18,6 +18,7 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.Map;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
@@ -25,7 +26,9 @@ import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.DataSourceFactory;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
 import org.apache.tomcat.jdbc.pool.PoolConfiguration;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * Interceptor that keep track of connection state to avoid roundtrips to the database.
@@ -51,6 +54,10 @@ public class ConnectionState extends JdbcInterceptor  {
     protected Boolean readOnly = null;
     protected String catalog = null;
 
+    public ConnectionState(JdbcInterceptor next, InterceptorProperties properties) {
+    	super(next, properties);
+    }
+    
     @Override
     public void cleanup() {
         //we are resetting, reset our defaults

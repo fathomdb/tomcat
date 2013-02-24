@@ -24,17 +24,20 @@ import java.util.Map;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 public class QueryTimeoutInterceptor extends AbstractCreateStatementInterceptor {
     private static Log log = LogFactory.getLog(QueryTimeoutInterceptor.class);
-    int timeout;
-
-    @Override
-    public void setProperties(Map<String,InterceptorProperty> properties) {
-        super.setProperties(properties);
-        timeout = properties.get("queryTimeout").getValueAsInt(-1);
-    }
+    
+    final int timeout;
+    
+    public QueryTimeoutInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
+		super(next, properties);
+		
+	    timeout = properties.getValueAsInt("queryTimeout", -1);
+	}
 
     @Override
     public Object createStatement(Object proxy, Method method, Object[] args, Object statement, long time) {

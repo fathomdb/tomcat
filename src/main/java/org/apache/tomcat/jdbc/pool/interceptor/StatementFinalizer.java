@@ -20,11 +20,15 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 /**
  * Keeps track of statements associated with a connection and invokes close upon {@link java.sql.Connection#close()}
  * Useful for applications that dont close the associated statements after being done with a connection.
@@ -34,8 +38,12 @@ import org.apache.tomcat.jdbc.pool.PooledConnection;
 public class StatementFinalizer extends AbstractCreateStatementInterceptor {
     private static final Log log = LogFactory.getLog(StatementFinalizer.class);
 
-    protected ArrayList<WeakReference<Statement>> statements = new ArrayList<>();
+    protected final ArrayList<WeakReference<Statement>> statements = new ArrayList<>();
 
+    public StatementFinalizer(JdbcInterceptor next, InterceptorProperties properties) {
+        super(next, properties);
+    }
+    
     @Override
     public Object createStatement(Object proxy, Method method, Object[] args, Object statement, long time) {
         try {
@@ -57,7 +65,7 @@ public class StatementFinalizer extends AbstractCreateStatementInterceptor {
                     st.close();
                 } catch (Exception ignore) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Unable to closed statement upon connection close.",ignore);
+                        log.debug("Unable to close statement upon connection close.",ignore);
                     }
                 }
             }

@@ -19,6 +19,11 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
+import java.util.Map;
+
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 
 /**
  * @author fhanik
@@ -27,8 +32,8 @@ import java.security.SecureRandom;
 public class InduceSlowQuery extends AbstractQueryReport {
     public static SecureRandom random = new SecureRandom();
 
-    public InduceSlowQuery() {
-        // TODO Auto-generated constructor stub
+    public InduceSlowQuery(JdbcInterceptor next, InterceptorProperties properties) {
+    	super(next, properties);
     }
 
     public void doWait() {

@@ -19,8 +19,11 @@ package org.apache.tomcat.jdbc.pool;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.Map;
 
 import javax.sql.XAConnection;
+
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 /**
  * A ProxyConnection object is the bottom most interceptor that wraps an object of type
  * {@link PooledConnection}. The ProxyConnection intercepts three methods:
@@ -35,43 +38,30 @@ import javax.sql.XAConnection;
  */
 public class ProxyConnection extends JdbcInterceptor {
 
-    protected PooledConnection connection = null;
+    final PooledConnection connection;
 
-    protected ConnectionPool pool = null;
+    final ConnectionPool pool;
 
-    public PooledConnection getConnection() {
-        return connection;
-    }
-
-    public void setConnection(PooledConnection connection) {
-        this.connection = connection;
-    }
-
+    private volatile boolean closed;
+    
     public ConnectionPool getPool() {
         return pool;
     }
 
-    public void setPool(ConnectionPool pool) {
-        this.pool = pool;
-    }
-
-    protected ProxyConnection(ConnectionPool parent, PooledConnection con,
-            boolean useEquals) {
+    protected ProxyConnection(ConnectionPool parent, PooledConnection con) {
+    	super(null, null);
         pool = parent;
         connection = con;
-        setUseEquals(useEquals);
     }
 
-    @Override
-    public void initialize(ConnectionPool parent, PooledConnection con) {
-        this.pool = parent;
-        this.connection = con;
-    }
-
+	@Override
+	public void initialize(ConnectionPool parent, PooledConnection con) {
+		closed = false;
+	}
+    
     @Override
     public void cleanup() {
-        this.pool = null;
-        this.connection = null;
+    	closed = true;
     }
 
     public boolean isWrapperFor(Class<?> iface) {
@@ -101,10 +91,11 @@ public class ProxyConnection extends JdbcInterceptor {
             return Boolean.valueOf(isClosed());
         }
         if (compare(CLOSE_VAL,method)) {
-            if (connection==null) return null; //noop for already closed.
-            PooledConnection poolc = this.connection;
-            this.connection = null;
-            pool.returnConnection(poolc);
+            if (closed) {
+            	return null; //noop for already closed.
+            }
+            pool.returnConnection(this.connection);
+            closed = true;
             return null;
         } else if (compare(TOSTRING_VAL,method)) {
             return this.toString();
@@ -144,7 +135,7 @@ public class ProxyConnection extends JdbcInterceptor {
     }
 
     public boolean isClosed() {
-        return connection==null || connection.isDiscarded();
+        return closed || connection.isDiscarded();
     }
 
     public PooledConnection getDelegateConnection() {
@@ -159,5 +150,11 @@ public class ProxyConnection extends JdbcInterceptor {
     public String toString() {
         return "ProxyConnection["+(connection!=null?connection.toString():"null")+"]";
     }
+
+	@Override
+	public PooledConnection getPooledConnection() {
+		return connection;
+	}
+
 
 }
