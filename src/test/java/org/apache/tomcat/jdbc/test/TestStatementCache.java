@@ -165,7 +165,7 @@ public class TestStatementCache extends DefaultTestCase {
     @Test
     public void testMaxCacheSize() throws Exception {
         init();
-        config(true,false,100);
+        config(true,false,40);
         Connection con1 = datasource.getConnection();
         Connection con2 = datasource.getConnection();
         for (int i=0; i<120; i++) {
@@ -174,7 +174,7 @@ public class TestStatementCache extends DefaultTestCase {
             PreparedStatement ps = con.prepareStatement("select "+i);
             ps.close();
         }
-        Assert.assertEquals(100,interceptor.getCacheSize());
+        Assert.assertEquals(40,interceptor.getCacheSize());
         con1.close();
         con2.close();
     }
