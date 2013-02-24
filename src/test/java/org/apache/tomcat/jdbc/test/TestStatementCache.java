@@ -18,64 +18,64 @@ package org.apache.tomcat.jdbc.test;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.Map;
+import java.sql.SQLException;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
-import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
-import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
+import org.apache.tomcat.jdbc.pool.PooledConnection;
 import org.apache.tomcat.jdbc.pool.interceptor.StatementCache;
 
 public class TestStatementCache extends DefaultTestCase {
 
-    private static volatile TestStatementCacheInterceptor interceptor = null;
-
-
-    @Override
-    @After
-    public void tearDown() throws Exception {
-        interceptor = null;
-        super.tearDown();
-    }
-
-
     private void config(boolean cachePrepared, boolean cacheCallable, int max) {
-        datasource.getPoolProperties().setJdbcInterceptors(TestStatementCacheInterceptor.class.getName()+
+        datasource.getPoolProperties().setJdbcInterceptors(StatementCache.class.getName()+
                 "(prepared="+cachePrepared+",callable="+cacheCallable+",max="+max+")");
     }
 
     @Test
     public void testIsCacheEnabled() throws Exception {
         config(true,true,50);
-        datasource.getConnection().close();
-        Assert.assertNotNull("Interceptor was not created.", interceptor);
+        Connection connection = datasource.getConnection();
+        Assert.assertNotNull("Interceptor was not created.", getInterceptor(connection));
+        connection.close();
     }
 
     @Test
     public void testCacheProperties() throws Exception {
         config(true,true,50);
-        datasource.getConnection().close();
+        Connection connection = datasource.getConnection();
+        StatementCache interceptor = getInterceptor(connection);
+        
         Assert.assertTrue(interceptor.isCacheCallable());
         Assert.assertTrue(interceptor.isCachePrepared());
         Assert.assertEquals(50,interceptor.getMaxCacheSize());
+        
+        connection.close();
     }
 
-    @Test
+    private StatementCache getInterceptor(Connection connection) throws SQLException {
+    	PooledConnection pooledConnection = connection.unwrap(PooledConnection.class);
+    	StatementCache interceptor = pooledConnection.getHandler(StatementCache.class);
+    	return interceptor;
+	}
+
+	@Test
     public void testCacheProperties2() throws Exception {
         config(false,false,100);
-        datasource.getConnection().close();
+        Connection connection = datasource.getConnection();
+        StatementCache interceptor = getInterceptor(connection);
         Assert.assertFalse(interceptor.isCacheCallable());
         Assert.assertFalse(interceptor.isCachePrepared());
         Assert.assertEquals(100,interceptor.getMaxCacheSize());
+        connection.close();
     }
 
     @Test
     public void testPreparedStatementCache() throws Exception {
         config(true,false,100);
         Connection con = datasource.getConnection();
+        StatementCache interceptor = getInterceptor(con);
         PreparedStatement ps1 = con.prepareStatement("select 1");
         PreparedStatement ps2 = con.prepareStatement("select 1");
         Assert.assertEquals(0,interceptor.getCacheSize());
@@ -89,6 +89,7 @@ public class TestStatementCache extends DefaultTestCase {
         ps3.close();
         Assert.assertTrue(ps3.isClosed());
         Assert.assertEquals(1,interceptor.getCacheSize());
+        con.close();
     }
 
     @Test
@@ -96,8 +97,12 @@ public class TestStatementCache extends DefaultTestCase {
         init();
         config(false,false,100);
         Connection con = datasource.getConnection();
+        StatementCache interceptor = getInterceptor(con);
+
         PreparedStatement ps1 = con.prepareStatement("select 1");
         PreparedStatement ps2 = con.prepareStatement("select 1");
+        
+
         Assert.assertEquals(0,interceptor.getCacheSize());
         ps1.close();
         Assert.assertTrue(ps1.isClosed());
@@ -109,6 +114,8 @@ public class TestStatementCache extends DefaultTestCase {
         ps3.close();
         Assert.assertTrue(ps3.isClosed());
         Assert.assertEquals(0,interceptor.getCacheSize());
+        
+        con.close();
     }
 
     @Test
@@ -123,16 +130,10 @@ public class TestStatementCache extends DefaultTestCase {
             PreparedStatement ps = con.prepareStatement("select "+i);
             ps.close();
         }
-        Assert.assertEquals(40,interceptor.getCacheSize());
+        Assert.assertEquals(40,getInterceptor(con1).getCacheSize());
+        Assert.assertEquals(40,getInterceptor(con2).getCacheSize());
         con1.close();
         con2.close();
     }
 
-
-    public static class TestStatementCacheInterceptor extends StatementCache {
-        public TestStatementCacheInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
-        	super(next, properties);        	    
-            TestStatementCache.interceptor = this;
-        }
-    }
 }
