@@ -285,20 +285,18 @@ public class ConnectionPool {
     protected Connection setupConnection(PooledConnection con) throws SQLException {
         //fetch previously cached interceptor proxy - one per connection
         JdbcInterceptor handler = con.getHandler();
-       
             
         handler.initialize(this, con);
 
         try {
-            getProxyConstructor(con.getXAConnection() != null);
             //create the proxy
             //TODO possible optimization, keep track if this connection was returned properly, and don't generate a new facade
-            Connection connection = null;
             if (getPoolProperties().getUseDisposableConnectionFacade() ) {
-                connection = (Connection)proxyClassConstructor.newInstance(new Object[] { new DisposableConnectionFacade(handler, null) });
-            } else {
-                connection = (Connection)proxyClassConstructor.newInstance(new Object[] {handler});
+                handler =  new DisposableConnectionFacade(handler, null);
             }
+            
+            Constructor<?> proxyConstructor = getProxyConstructor(con.getXAConnection() != null);
+            Connection connection = (Connection)proxyConstructor.newInstance(new Object[] { new InvocationHandlerFacade(handler) });
             //return the connection
             return connection;
         }catch (Exception x) {
