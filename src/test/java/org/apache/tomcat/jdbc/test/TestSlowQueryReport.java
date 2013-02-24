@@ -36,7 +36,7 @@ import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.interceptor.SlowQueryReport;
 import org.apache.tomcat.jdbc.pool.interceptor.SlowQueryReportJmx;
 
-public class TestSlowQueryReport extends DefaultTestCase {
+public class TestSlowQueryReport extends CreateTestTable {
 
     @Test
     public void testSlowSql() throws Exception {
