@@ -69,6 +69,7 @@ public class TestConcurrency extends DefaultTestCase {
                 try {
                     while (loopcount.incrementAndGet() < iter) {
                         Connection con = ds.getConnection();
+                        Assert.assertFalse(con.isClosed());
                         Thread.sleep(10);
                         con.close();
                     }
