@@ -17,6 +17,7 @@
 package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -135,7 +136,7 @@ public class ConnectionState extends JdbcInterceptor  {
 
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
         String name = method.getName();
         boolean read = false;
         int index = -1;
@@ -161,7 +162,7 @@ public class ConnectionState extends JdbcInterceptor  {
             if (result!=null) return result;
         }
 
-        result = super.invoke(proxy, method, args);
+        result = super.invokeMethod(proxy, method, args);
         if (read || write) {
             switch (index) {
                 case 0:{autoCommit = (Boolean) (read?result:args[0]); break;}

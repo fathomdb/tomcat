@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -97,7 +98,7 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
      * Creates a statement interceptor to monitor query response times
      */
     @Override
-    public Object createStatement(Object proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
         try {
             String name = method.getName();
             Constructor<?> constructor = null;
@@ -148,7 +149,7 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
      *
      * @return  A new proxy for the Statement
      */
-    protected Object createDecorator(Object proxy, Method method, Object[] args,
+    protected Object createDecorator(Connection proxy, Method method, Object[] args,
                                      Object statement, Constructor<?> constructor, String sql)
     throws InstantiationException, IllegalAccessException, InvocationTargetException {
         Object result = null;
@@ -179,7 +180,7 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
         protected boolean closed = false;
         protected T delegate;
         private Object actualProxy;
-        private Object connection;
+        private Connection connection;
         private final String sql;
         private final Constructor<?> constructor;
 
@@ -197,10 +198,10 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
             return sql;
         }
 
-        public void setConnection(Object proxy) {
+        public void setConnection(Connection proxy) {
             this.connection = proxy;
         }
-        public Object getConnection() {
+        public Connection getConnection() {
             return this.connection;
         }
 

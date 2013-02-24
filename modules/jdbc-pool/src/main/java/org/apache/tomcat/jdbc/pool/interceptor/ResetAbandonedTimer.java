@@ -18,6 +18,7 @@
 package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
@@ -53,8 +54,8 @@ public class ResetAbandonedTimer extends AbstractQueryReport {
 
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Object result = super.invoke(proxy, method, args);
+    public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
+        Object result = super.invokeMethod(proxy, method, args);
         resetTimer();
         return result;
     }

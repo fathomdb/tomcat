@@ -597,7 +597,7 @@ public class PooledConnection {
     /**
      * Return the timestamps of last pool action. Timestamps are typically set when connections
      * are borrowed from the pool. It is used to keep track of {@link PoolConfiguration#setRemoveAbandonedTimeout(int) abandon-timeouts}.
-     * This timestamp can also be reset by the {@link org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer#invoke(Object, java.lang.reflect.Method, Object[])}
+     * This timestamp can also be reset by the {@link org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer#invokeMethod(Object, java.lang.reflect.Method, Object[])}
      * @return the timestamp of the last pool action as defined by {@link System#currentTimeMillis()}
      */
     public long getTimestamp() {

@@ -19,6 +19,7 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
+import java.sql.Connection;
 import java.util.Map;
 
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
@@ -49,9 +50,9 @@ public class InduceSlowQuery extends AbstractQueryReport {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
         // TODO Auto-generated method stub
-        Object result = super.invoke(proxy, method, args);
+        Object result = super.invokeMethod(proxy, method, args);
         return result;
     }
 

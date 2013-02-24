@@ -20,6 +20,7 @@ package org.apache.tomcat.jdbc.pool;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -41,9 +42,9 @@ public class TrapException extends JdbcInterceptor {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invokeMethod(Connection proxy, Method method, Object[] args) throws Throwable {
         try {
-            return super.invoke(proxy, method, args);
+            return super.invokeMethod(proxy, method, args);
         }catch (Exception t) {
             Throwable exception = t;
             if (t instanceof InvocationTargetException && t.getCause() != null) {
