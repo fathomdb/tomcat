@@ -23,9 +23,6 @@ import java.sql.Statement;
 import java.util.Random;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer;
 
 public class CreateTestTable extends DefaultTestCase {
