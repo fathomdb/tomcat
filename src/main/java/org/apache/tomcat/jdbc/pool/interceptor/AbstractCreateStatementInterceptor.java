@@ -131,21 +131,4 @@ public abstract class  AbstractCreateStatementInterceptor extends JdbcIntercepto
         return process;
     }
 
-    /**
-     * no-op for this interceptor. no state is stored.
-     */
-    @Override
-    public void initialize(ConnectionPool parent, PooledConnection con) {
-        // NOOP
-    }
-
-        /**
-     * no-op for this interceptor. no state is stored.
-     */
-    @Override
-    public void cleanup() {
-        // NOOP
-    }
-
-    
-    }
+}

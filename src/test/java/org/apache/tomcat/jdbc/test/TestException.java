@@ -42,18 +42,8 @@ public class TestException extends DefaultTestCase {
 
 
     public static class TestInterceptor extends JdbcInterceptor {
-
         public TestInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
         	super(next, properties);
-        }
-
-        @Override
-        public void initialize(ConnectionPool parent, PooledConnection con) {
-            // TODO Auto-generated method stub
-        }
-
-        @Override
-        public void cleanup() {
         }
     }
 }
