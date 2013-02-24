@@ -71,5 +71,10 @@ public class StatementFinalizer extends AbstractCreateStatementInterceptor {
         super.initialize(parent, con);
     }
 
+    @Override
+    public void cleanup() {
+        statements.clear();
+        super.cleanup();
+    }
 
 }

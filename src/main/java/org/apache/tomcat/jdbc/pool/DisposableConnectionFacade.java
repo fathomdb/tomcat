@@ -45,6 +45,9 @@ public class DisposableConnectionFacade extends JdbcInterceptor {
     public void initialize(ConnectionPool parent, PooledConnection con) {
     }
 
+    @Override
+    public void cleanup() {
+    }
 
 
     @Override
