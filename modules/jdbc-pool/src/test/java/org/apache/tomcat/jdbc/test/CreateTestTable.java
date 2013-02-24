@@ -22,6 +22,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer;
@@ -30,8 +32,7 @@ public class CreateTestTable extends DefaultTestCase {
 
     public static volatile boolean recreate = Boolean.getBoolean("recreate");
 
-    @Test
-    public void testCreateTestTable() throws Exception {
+    private void testCreateTestTable() throws Exception {
         Connection con = datasource.getConnection();
         Statement st = con.createStatement();
         try {
@@ -43,7 +44,7 @@ public class CreateTestTable extends DefaultTestCase {
         con.close();
     }
 
-    public int testCheckData() throws Exception {
+    private  int testCheckData() throws Exception {
         int count = 0;
         String check = "select count (*) from test";
         Connection con = datasource.getConnection();
@@ -61,8 +62,10 @@ public class CreateTestTable extends DefaultTestCase {
         return count;
     }
 
-    @Test
+    @Before
     public void testPopulateData() throws Exception {
+    	testCreateTestTable();
+    	
         int count = 100000;
         int actual = testCheckData();
         if (actual>=count) {
