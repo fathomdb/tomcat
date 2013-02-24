@@ -31,6 +31,7 @@ public class TestInterceptorShortName extends DefaultTestCase {
         this.datasource.setJdbcInterceptors("TestInterceptor");
         this.datasource.setUseDisposableConnectionFacade(false);
         this.datasource.setMaxActive(1);
+        this.datasource.setInitialSize(0);
         this.datasource.createPool();
         Assert.assertEquals("Only one interceptor should have been called setProperties[1]",1,TestInterceptor.instancecount.get());
         TestInterceptor.instancecount.set(0);
