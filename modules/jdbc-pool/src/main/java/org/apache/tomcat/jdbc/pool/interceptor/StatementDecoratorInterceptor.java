@@ -220,6 +220,9 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
             delegate = null;
         }
 
+        protected void exceptionReported(Throwable t) {
+        }
+
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             if (compare(TOSTRING_VAL,method)) {
@@ -252,6 +255,8 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
                     result = method.invoke(delegate, args);
                 }
             } catch (Throwable t) {
+                exceptionReported(t);
+
                 if (t instanceof InvocationTargetException
                         && t.getCause() != null) {
                     throw t.getCause();
