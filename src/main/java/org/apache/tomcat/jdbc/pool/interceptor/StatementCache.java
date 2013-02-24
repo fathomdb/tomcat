@@ -20,17 +20,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.tomcat.jdbc.pool.ConnectionPool;
 import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
 import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
-import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperty;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
 
 /**
@@ -135,6 +131,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
         st.forceClose();
     }
 
+    
     @Override
     protected Object createDecorator(Object proxy, Method method, Object[] args,
                                      Object statement, Constructor<?> constructor, String sql)
@@ -142,11 +139,10 @@ public class StatementCache extends StatementDecoratorInterceptor {
         boolean process = process(this.types, method, false);
         if (process) {
             Object result = null;
-            CachedStatement statementProxy = new CachedStatement((Statement)statement,sql);
+            CachedStatement statementProxy = new CachedStatement((Statement)statement,sql,constructor);
             result = constructor.newInstance(new Object[] { statementProxy });
             statementProxy.setActualProxy(result);
             statementProxy.setConnection(proxy);
-            statementProxy.setConstructor(constructor);
             return result;
         } else {
             return super.createDecorator(proxy, method, args, statement, constructor, sql);
@@ -175,13 +171,14 @@ public class StatementCache extends StatementDecoratorInterceptor {
     }
 
     private boolean cacheStatement(CachedStatement proxy) {
-        if (proxy.getSql()==null) {
+        String sql = proxy.getSql();
+		if (sql==null) {
             return false;
-        } else if (statements.containsKey(proxy.getSql())) {
+        } else if (statements.containsKey(sql)) {
             return false;
         } else {
             //cache the statement
-            statements.put(proxy.getSql(), proxy);
+            statements.put(sql, proxy);
             return true;
         }
     }
@@ -200,8 +197,8 @@ public class StatementCache extends StatementDecoratorInterceptor {
         boolean cached = false;
         boolean broken = false;
 
-        public CachedStatement(Statement parent, String sql) {
-            super(parent, sql);
+        public CachedStatement(Statement parent, String sql, Constructor<?> constructor) {
+            super(parent, sql, constructor);
         }
 
         @Override
@@ -210,13 +207,12 @@ public class StatementCache extends StatementDecoratorInterceptor {
             boolean shouldClose = true;
             if (!broken) {
                 //cache a proxy so that we don't reuse the facade
-                CachedStatement proxy = new CachedStatement(getDelegate(),getSql());
+                CachedStatement proxy = new CachedStatement(getDelegate(),getSql(),getConstructor());
                 try {
                     //create a new facade
                     Object actualProxy = getConstructor().newInstance(new Object[] { proxy });
                     proxy.setActualProxy(actualProxy);
                     proxy.setConnection(getConnection());
-                    proxy.setConstructor(getConstructor());
                     if (cacheStatement(proxy)) {
                         proxy.cached = true;
                         shouldClose = false;
