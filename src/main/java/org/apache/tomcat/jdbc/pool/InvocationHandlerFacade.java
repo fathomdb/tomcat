@@ -18,20 +18,27 @@ package org.apache.tomcat.jdbc.pool;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 
 /**
  * A InvocationHandlerFacade implements InvocationHandler using JdbcInterceptor
  */
 public class InvocationHandlerFacade implements InvocationHandler {
-	private JdbcInterceptor interceptor;
+    private JdbcInterceptor interceptor;
 
-	protected InvocationHandlerFacade(JdbcInterceptor interceptor) {
-		this.interceptor = interceptor;
-	}
+    protected InvocationHandlerFacade(JdbcInterceptor interceptor) {
+        this.interceptor = interceptor;
+    }
 
-	@Override
-	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		return interceptor.invokeMethod((Connection) proxy, method, args);
-	}
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if (JdbcInterceptor.EQUALS_VAL.equals(method.getName())) {
+            return Boolean.valueOf(this.equals(Proxy.getInvocationHandler(args[0])));
+        } else if (JdbcInterceptor.HASHCODE_VAL.equals(method.getName())) {
+            return Integer.valueOf(this.hashCode());
+        }
+
+        return interceptor.invokeMethod((Connection) proxy, method, args);
+    }
 }
