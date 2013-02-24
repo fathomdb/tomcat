@@ -18,6 +18,7 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -221,6 +222,8 @@ public class StatementCache extends StatementDecoratorInterceptor {
 
     protected class CachedStatement extends StatementDecoratorInterceptor.StatementProxy<Statement> {
         boolean cached = false;
+        boolean broken = false;
+
         public CachedStatement(Statement parent, String sql) {
             super(parent, sql);
         }
@@ -229,7 +232,7 @@ public class StatementCache extends StatementDecoratorInterceptor {
         public void closeInvoked() {
             //should we cache it
             boolean shouldClose = true;
-            if (cacheSize.get() < maxCacheSize) {
+            if (!broken && cacheSize.get() < maxCacheSize) {
                 //cache a proxy so that we don't reuse the facade
                 CachedStatement proxy = new CachedStatement(getDelegate(),getSql());
                 try {
@@ -257,6 +260,32 @@ public class StatementCache extends StatementDecoratorInterceptor {
         public void forceClose() {
             removeStatement(this);
             super.closeInvoked();
+        }
+
+        @Override
+        protected void exceptionReported(Throwable t) {
+            broken |= isPermanentFailure(t);
+        }
+
+        boolean isPermanentFailure(Throwable t) {
+            if (t instanceof SQLException) {
+                String sqlState = ((SQLException) t).getSQLState();
+
+                // Postgres error when the underlying schema changes
+                if ("0A000".equals(sqlState)) {
+                    String message = ((SQLException) t).getMessage();
+                    if (message.contains("cached plan must not change result type")) {
+                        return true;
+                    }
+                }
+            }
+
+            Throwable cause = t.getCause();
+            if (cause == null) {
+                return false;
+            }
+
+            return isPermanentFailure(cause);
         }
 
     }
