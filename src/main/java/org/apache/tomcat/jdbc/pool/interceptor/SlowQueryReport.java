@@ -191,8 +191,8 @@ public class SlowQueryReport extends AbstractQueryReport  {
 
 
     @Override
-    public void reset(ConnectionPool parent, PooledConnection con) {
-        super.reset(parent, con);
+    public void initialize(ConnectionPool parent, PooledConnection con) {
+        super.initialize(parent, con);
         if (parent!=null)
             queries = SlowQueryReport.perPoolStats.get(parent.getName());
         else

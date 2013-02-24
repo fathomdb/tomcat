@@ -41,7 +41,7 @@ public class TestException extends DefaultTestCase {
     public static class TestInterceptor extends JdbcInterceptor {
 
         @Override
-        public void reset(ConnectionPool parent, PooledConnection con) {
+        public void initialize(ConnectionPool parent, PooledConnection con) {
             // TODO Auto-generated method stub
         }
     }
