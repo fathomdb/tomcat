@@ -43,7 +43,7 @@ public class StatementFinalizer extends AbstractCreateStatementInterceptor {
     }
     
     @Override
-    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Statement statement, long time) {
         try {
             if (statement instanceof Statement)
                 statements.add(new WeakReference<>((Statement)statement));

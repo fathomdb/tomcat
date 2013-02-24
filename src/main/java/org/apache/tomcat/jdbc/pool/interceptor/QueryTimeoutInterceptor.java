@@ -38,9 +38,9 @@ public class QueryTimeoutInterceptor extends AbstractCreateStatementInterceptor 
 	}
 
     @Override
-    public Object createStatement(Connection proxy, Method method, Object[] args, Object statement, long time) {
+    public Object createStatement(Connection proxy, Method method, Object[] args, Statement statement, long time) {
         if (statement instanceof Statement && timeout > 0) {
-            Statement s = (Statement)statement;
+            Statement s = statement;
             try {
                 s.setQueryTimeout(timeout);
             }catch (SQLException x) {
