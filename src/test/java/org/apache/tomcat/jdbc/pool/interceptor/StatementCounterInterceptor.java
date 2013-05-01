@@ -19,8 +19,12 @@ package org.apache.tomcat.jdbc.pool.interceptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
+import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorProperties;
 
 /**
  * Interceptor that counts opened Statements. Is used by tests.
@@ -30,30 +34,32 @@ public class StatementCounterInterceptor extends StatementDecoratorInterceptor {
     private final AtomicInteger countOpen = new AtomicInteger();
     private final AtomicInteger countClosed = new AtomicInteger();
 
+    public StatementCounterInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
+    	super(next, properties);
+    }
+    
     public int getActiveCount() {
         return countOpen.get() - countClosed.get();
     }
 
     @Override
-    protected Object createDecorator(Object proxy, Method method,
-            Object[] args, Object statement, Constructor<?> constructor,
-            String sql) throws InstantiationException, IllegalAccessException,
+    protected Object createDecorator(Connection proxy, Method method, Object[] args,
+            Statement statement, Constructor<? extends Statement> constructor, String sql) throws InstantiationException, IllegalAccessException,
             InvocationTargetException {
-        Object result;
+        Statement result;
         StatementProxy statementProxy = new StatementProxy(
-                (Statement) statement, sql);
+                (Statement) statement, sql, constructor);
         result = constructor.newInstance(new Object[] { statementProxy });
         statementProxy.setActualProxy(result);
         statementProxy.setConnection(proxy);
-        statementProxy.setConstructor(constructor);
         countOpen.incrementAndGet();
         return result;
     }
 
     private class StatementProxy extends
             StatementDecoratorInterceptor.StatementProxy<Statement> {
-        public StatementProxy(Statement delegate, String sql) {
-            super(delegate, sql);
+        public StatementProxy(Statement delegate, String sql, Constructor<? extends Statement> constructor) {
+            super(delegate, sql, constructor);
         }
 
         @Override
