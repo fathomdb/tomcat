@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.apache.tomcat.jdbc.pool.JdbcInterceptor;
 import org.apache.tomcat.jdbc.pool.PooledConnection;
 import org.apache.tomcat.jdbc.pool.interceptor.StatementCache;
 import org.apache.tomcat.jdbc.pool.interceptor.StatementCounterInterceptor;
@@ -55,12 +56,6 @@ public class TestStatementCache extends DefaultTestCase {
         
         connection.close();
     }
-
-    private StatementCache getInterceptor(Connection connection) throws SQLException {
-    	PooledConnection pooledConnection = connection.unwrap(PooledConnection.class);
-    	StatementCache interceptor = pooledConnection.getHandler(StatementCache.class);
-    	return interceptor;
-	}
 
 	@Test
     public void testCacheProperties2() throws Exception {
@@ -124,7 +119,7 @@ public class TestStatementCache extends DefaultTestCase {
     public void testStatementClose1() throws Exception {
         init();
         datasource.setJdbcInterceptors(
-                TestStatementCacheInterceptor.class.getName()
+        		StatementCache.class.getName()
                 + "(prepared=true,callable=false,max=1);"
                 + StatementCounterInterceptor.class.getName());
         Connection con = datasource.getConnection();
@@ -158,7 +153,7 @@ public class TestStatementCache extends DefaultTestCase {
     public void testStatementClose2() throws Exception {
         init();
         datasource.setJdbcInterceptors(
-                TestStatementCacheInterceptor.class.getName()
+                StatementCache.class.getName()
                 + "(prepared=false,callable=false,max=10);"
                 + StatementCounterInterceptor.class.getName());
         Connection con = datasource.getConnection();
@@ -187,12 +182,9 @@ public class TestStatementCache extends DefaultTestCase {
         con2.close();
     }
 
-    public static class TestStatementCacheInterceptor extends StatementCache {
-        public TestStatementCacheInterceptor(JdbcInterceptor next, InterceptorProperties properties) {
-        	super(next, properties);        	    
-            TestStatementCache.interceptor = this;
-        }
-    }
+    private StatementCache getInterceptor(Connection connection) throws SQLException {
+    	return findInterceptor(connection, StatementCache.class);
+	}
 
     /**
      * Helper method that finds interceptor instance in interceptor chain of a
@@ -203,17 +195,22 @@ public class TestStatementCache extends DefaultTestCase {
      * @param clazz
      *            Interceptor class that we are looking for
      * @return Instance of <code>clazz</code>
+     * @throws SQLException 
      */
-    private static <T extends JdbcInterceptor> T findInterceptor(Object proxy,
-            Class<T> clazz) {
-        JdbcInterceptor interceptor = (JdbcInterceptor) Proxy
-                .getInvocationHandler(proxy);
-        while (interceptor != null) {
-            if (clazz.isInstance(interceptor)) {
-                return clazz.cast(interceptor);
-            }
-            interceptor = interceptor.getNext();
-        }
-        return null;
+    private static <T extends JdbcInterceptor> T findInterceptor(Connection connection,
+            Class<T> clazz) throws SQLException {
+    	PooledConnection pooledConnection = connection.unwrap(PooledConnection.class);
+    	T interceptor = pooledConnection.getHandler(clazz);
+    	return interceptor;
+
+//    	JdbcInterceptor interceptor = (JdbcInterceptor) Proxy
+//                .getInvocationHandler(proxy);
+//        while (interceptor != null) {
+//            if (clazz.isInstance(interceptor)) {
+//                return clazz.cast(interceptor);
+//            }
+//            interceptor = interceptor.getNext();
+//        }
+//        return null;
     }
 }
