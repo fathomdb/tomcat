@@ -786,11 +786,11 @@ public abstract class DelegatingResultSet implements ResultSet {
         inner.updateNClob(columnLabel, reader);
     }
 
-    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
-        return inner.getObject(columnIndex, type);
-    }
-
-    public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
-        return inner.getObject(columnLabel, type);
-    }
+//    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
+//        return inner.getObject(columnIndex, type);
+//    }
+//
+//    public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
+//        return inner.getObject(columnLabel, type);
+//    }
 }
