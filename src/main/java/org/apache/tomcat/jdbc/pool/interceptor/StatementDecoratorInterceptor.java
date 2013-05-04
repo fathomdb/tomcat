@@ -143,7 +143,7 @@ public class StatementDecoratorInterceptor extends AbstractCreateStatementInterc
     throws InstantiationException, IllegalAccessException, InvocationTargetException {
         Object result = null;
         StatementProxy<Statement> statementProxy =
-                new StatementProxy<>(statement,sql, constructor);
+                new StatementProxy<Statement>(statement,sql, constructor);
         result = constructor.newInstance(new Object[] { statementProxy });
         statementProxy.setActualProxy((Statement) result);
         statementProxy.setConnection(proxy);

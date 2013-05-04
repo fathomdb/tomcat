@@ -410,16 +410,16 @@ public class ConnectionPool {
         }
 
         //make space for 10 extra in case we flow over a bit
-        busy = new ArrayBlockingQueue<>(properties.getMaxActive(),false);
+        busy = new ArrayBlockingQueue<PooledConnection>(properties.getMaxActive(),false);
         //busy = new FairBlockingQueue<PooledConnection>();
         //make space for 10 extra in case we flow over a bit
         if (properties.isFairQueue()) {
-            idle = new FairBlockingQueue<>();
+            idle = new FairBlockingQueue<PooledConnection>();
             //idle = new MultiLockFairBlockingQueue<PooledConnection>();
             //idle = new LinkedTransferQueue<PooledConnection>();
             //idle = new ArrayBlockingQueue<PooledConnection>(properties.getMaxActive(),false);
         } else {
-            idle = new ArrayBlockingQueue<>(properties.getMaxActive(),properties.isFairQueue());
+            idle = new ArrayBlockingQueue<PooledConnection>(properties.getMaxActive(),properties.isFairQueue());
         }
 
         initializePoolCleaner(properties);
@@ -1244,7 +1244,7 @@ public class ConnectionPool {
 
 
     private static volatile Timer poolCleanTimer = null;
-    private static HashSet<PoolCleaner> cleaners = new HashSet<>();
+    private static HashSet<PoolCleaner> cleaners = new HashSet<PoolCleaner>();
 
     private static synchronized void registerCleaner(PoolCleaner cleaner) {
         unregisterCleaner(cleaner);
@@ -1294,7 +1294,7 @@ public class ConnectionPool {
         protected volatile long lastRun = 0;
 
         PoolCleaner(ConnectionPool pool, long sleepTime) {
-            this.pool = new WeakReference<>(pool);
+            this.pool = new WeakReference<ConnectionPool>(pool);
             this.sleepTime = sleepTime;
             if (sleepTime <= 0) {
                 log.warn("Database connection pool evicter thread interval is set to 0, defaulting to 30 seconds");

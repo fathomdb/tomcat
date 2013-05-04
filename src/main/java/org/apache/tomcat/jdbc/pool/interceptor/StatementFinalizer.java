@@ -36,7 +36,7 @@ import org.apache.tomcat.jdbc.pool.PooledConnection;
 public class StatementFinalizer extends AbstractCreateStatementInterceptor {
     private static final Log log = LogFactory.getLog(StatementFinalizer.class);
 
-    protected final ArrayList<WeakReference<Statement>> statements = new ArrayList<>();
+    protected final ArrayList<WeakReference<Statement>> statements = new ArrayList<WeakReference<Statement>>();
 
     public StatementFinalizer(JdbcInterceptor next, InterceptorProperties properties) {
         super(next, properties);
@@ -46,7 +46,7 @@ public class StatementFinalizer extends AbstractCreateStatementInterceptor {
     public Object createStatement(Connection proxy, Method method, Object[] args, Statement statement, long time) {
         try {
             if (statement instanceof Statement)
-                statements.add(new WeakReference<>((Statement)statement));
+                statements.add(new WeakReference<Statement>((Statement)statement));
         }catch (ClassCastException x) {
             //ignore this one
         }
